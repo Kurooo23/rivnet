@@ -109,11 +109,11 @@ class KuotaSection extends StatelessWidget {
               spacing: 6,
               runSpacing: 6,
               children: [
-                for (final k in options)
+                for (final option in options)
                   ChoiceChip(
-                    label: Text('$k'),
-                    selected: kuota == k,
-                    onSelected: (_) => onChanged(k),
+                    label: Text('$option'),
+                    selected: kuota == option,
+                    onSelected: (_) => onChanged(option),
                   ),
               ],
             ),

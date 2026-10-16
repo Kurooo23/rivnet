@@ -16,16 +16,18 @@ class PesertaGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = <Widget>[];
 
-    for (var i = 0; i < controllers.length; i += columns) {
-      final cells = <Widget>[];
-      for (var c = 0; c < columns; c++) {
-        final index = i + c;
-        if (c > 0) cells.add(SizedBox(width: gap));
-        cells.add(
+    for (var rowStart = 0; rowStart < controllers.length; rowStart += columns) {
+      final rowFields = <Widget>[];
+      for (var column = 0; column < columns; column++) {
+        final fieldIndex = rowStart + column;
+        if (column > 0) rowFields.add(SizedBox(width: gap));
+        rowFields.add(
           Expanded(
-            flex: 1,
-            child: index < controllers.length
-                ? _PesertaField(index: index, controller: controllers[index])
+            child: fieldIndex < controllers.length
+                ? _PesertaField(
+                    index: fieldIndex,
+                    controller: controllers[fieldIndex],
+                  )
                 : const SizedBox.shrink(),
           ),
         );
@@ -35,7 +37,7 @@ class PesertaGrid extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: cells,
+            children: rowFields,
           ),
         ),
       );

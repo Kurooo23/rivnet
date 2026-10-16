@@ -1,4 +1,4 @@
-/// Item data klasemen khusus Sepak Bola / Futsal
+/// Statistik satu peserta dalam klasemen.
 class KlasemenItem {
   KlasemenItem({
     required this.idPeserta,
@@ -17,9 +17,9 @@ class KlasemenItem {
   int menang;
   int seri;
   int kalah;
-  int gm; // Gol Masuk (Goals For)
-  int gk; // Gol Kebobolan (Goals Against)
+  int gm;
+  int gk;
 
-  int get sg => gm - gk; // Selisih Gol
-  int get poin => (menang * 3) + (seri * 1); // Poin: Menang 3, Seri 1, Kalah 0
+  int get sg => gm - gk;
+  int get poin => (menang * 3) + seri;
 }

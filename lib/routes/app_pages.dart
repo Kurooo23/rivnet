@@ -7,7 +7,6 @@ import '../screens/edit_tournament_screen.dart';
 import '../screens/main_shell.dart';
 import 'app_routes.dart';
 
-/// Daftar halaman terdaftar untuk GetX.
 class AppPages {
   AppPages._();
 

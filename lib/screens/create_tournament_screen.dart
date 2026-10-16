@@ -63,7 +63,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   @override
   void initState() {
     super.initState();
-    _setPesertaCount(_kuota);
+    _updateParticipantFields(_kuota);
   }
 
   @override
@@ -76,7 +76,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     super.dispose();
   }
 
-  void _setPesertaCount(int count) {
+  void _updateParticipantFields(int count) {
     while (_pesertaControllers.length < count) {
       _pesertaControllers.add(
         TextEditingController(
@@ -93,7 +93,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     setState(() {
       _format = format;
       if (_isElimination && !_eliminationOptions.contains(_kuota)) _kuota = 4;
-      _setPesertaCount(_kuota);
+      _updateParticipantFields(_kuota);
     });
   }
 
@@ -101,7 +101,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     if (value < 2) return;
     setState(() {
       _kuota = value;
-      _setPesertaCount(value);
+      _updateParticipantFields(value);
     });
   }
 
@@ -113,16 +113,18 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
     if (value != null) _changeKuota(value);
   }
 
-  void _save() {
-    if (!_formKey.currentState!.validate()) return;
-
-    final deskripsi = _deskripsiController.text.trim();
-    final peserta = [
-      for (var i = 0; i < _pesertaControllers.length; i++)
-        _pesertaControllers[i].text.trim().isEmpty
-            ? 'Peserta ${i + 1}'
-            : _pesertaControllers[i].text.trim(),
+  List<String> _participantNames() {
+    return [
+      for (var index = 0; index < _pesertaControllers.length; index++)
+        _pesertaControllers[index].text.trim().isEmpty
+            ? 'Peserta ${index + 1}'
+            : _pesertaControllers[index].text.trim(),
     ];
+  }
+
+  void _createTournament() {
+    if (!_formKey.currentState!.validate()) return;
+    final deskripsi = _deskripsiController.text.trim();
 
     Get.back(
       result: Tournament(
@@ -133,7 +135,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
         format: _format.name,
         jumlahLeg: _jumlahLeg,
         kuota: _kuota,
-        peserta: peserta,
+        peserta: _participantNames(),
       ),
     );
   }
@@ -158,7 +160,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   vertical: sectionGap,
                 ),
                 children: [
-                  // bagian 1: informasi | cabang
                   PairRow(
                     isWide: layout.isWide,
                     gap: layout.gap,
@@ -208,7 +209,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   ),
                   SizedBox(height: sectionGap),
 
-                  // bagian 2: format | leg
                   PairRow(
                     isWide: layout.isWide,
                     gap: layout.gap,
@@ -285,7 +285,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   ),
                   SizedBox(height: sectionGap),
 
-                  // bagian 3: kuota
                   KuotaSection(
                     kuota: _kuota,
                     format: _format.name,
@@ -298,7 +297,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   ),
                   SizedBox(height: sectionGap + 4),
 
-                  // bagian 4: daftar peserta
                   const SizedBox(height: 8),
                   PesertaGrid(
                     columns: layout.isWide ? _gridColumns : 1,
@@ -308,7 +306,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                   SizedBox(height: sectionGap + 8),
 
                   FilledButton(
-                    onPressed: _save,
+                    onPressed: _createTournament,
                     child: const Padding(
                       padding: EdgeInsets.symmetric(vertical: 14),
                       child: Text('Simpan & Generate Pertandingan'),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-const pairFlex = [1, 1]; // section kiri : kanan (layar lebar)
+const _sectionFlex = 1;
 
 class PairRow extends StatelessWidget {
   const PairRow({
@@ -30,9 +30,9 @@ class PairRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(flex: pairFlex[0], child: left),
+        Expanded(flex: _sectionFlex, child: left),
         SizedBox(width: gap),
-        Expanded(flex: pairFlex[1], child: right),
+        Expanded(flex: _sectionFlex, child: right),
       ],
     );
   }

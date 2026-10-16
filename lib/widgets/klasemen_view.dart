@@ -85,13 +85,14 @@ class KlasemenTable extends StatelessWidget {
     );
   }
 
-  String _num(int value, {bool signed = false}) {
-    final text = '${value.abs()}';
-    if (value < 0) return '-$text';
-    return signed && value > 0 ? '+$text' : text;
+  String _formatNumber(int value, {bool signed = false}) {
+    final absoluteValue = value.abs();
+    if (value < 0) return '-$absoluteValue';
+    if (signed && value > 0) return '+$absoluteValue';
+    return '$absoluteValue';
   }
 
-  Widget _header() {
+  Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -138,14 +139,14 @@ class KlasemenTable extends StatelessWidget {
     );
   }
 
-  Widget _row(KlasemenItem item, int rank) {
-    final isLast = rank == klasemen.length;
+  Widget _buildRow(KlasemenItem item, int rank) {
+    final isLastRow = rank == klasemen.length;
     const podiumColors = {
       1: Color(0x0DFFD700),
       2: Color(0x08C0C0C0),
       3: Color(0x08CD7F32),
     };
-    final gdColor = item.sg > 0
+    final goalDifferenceColor = item.sg > 0
         ? successColor
         : (item.sg < 0 ? errorColor : textSecondary);
 
@@ -157,10 +158,10 @@ class KlasemenTable extends StatelessWidget {
             (rank.isOdd
                 ? Colors.white.withValues(alpha: 0.015)
                 : Colors.transparent),
-        borderRadius: isLast
+        borderRadius: isLastRow
             ? const BorderRadius.vertical(bottom: Radius.circular(16))
             : null,
-        border: isLast
+        border: isLastRow
             ? null
             : Border(
                 bottom: BorderSide(color: Colors.white.withValues(alpha: 0.04)),
@@ -189,10 +190,14 @@ class KlasemenTable extends StatelessWidget {
           _cell('${item.seri}', 1, color: warningColor),
           _cell('${item.kalah}', 1, color: errorColor),
           if (showGoals) ...[
-            _cell(_num(item.gm), 1.1, color: textPrimary, bold: false),
-            _cell(_num(item.gk), 1.1, color: textMuted, bold: false),
+            _cell(_formatNumber(item.gm), 1.1, color: textPrimary, bold: false),
+            _cell(_formatNumber(item.gk), 1.1, color: textMuted, bold: false),
           ],
-          _cell(_num(item.sg, signed: true), 1.3, color: gdColor),
+          _cell(
+            _formatNumber(item.sg, signed: true),
+            1.3,
+            color: goalDifferenceColor,
+          ),
           SizedBox(
             width: unit * 1.5,
             child: Container(
@@ -205,7 +210,7 @@ class KlasemenTable extends StatelessWidget {
                 borderRadius: BorderRadius.circular(5),
               ),
               child: Text(
-                _num(item.poin),
+                _formatNumber(item.poin),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
@@ -237,8 +242,9 @@ class KlasemenTable extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _header(),
-          for (int i = 0; i < klasemen.length; i++) _row(klasemen[i], i + 1),
+          _buildHeader(),
+          for (var index = 0; index < klasemen.length; index++)
+            _buildRow(klasemen[index], index + 1),
         ],
       ),
     );

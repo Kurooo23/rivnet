@@ -13,7 +13,7 @@ class Tournament {
     bool isFinished = false,
   }) : _isFinished = isFinished;
 
-  String? id; // dibuat saat insert ke database
+  String? id;
   final String name;
   final String game;
   final DateTime date;
@@ -25,22 +25,18 @@ class Tournament {
   String _status;
   bool _isFinished;
 
-  // ===================== GETTER =====================
   String get status => _status;
   bool get isFinished => _isFinished;
 
-  // True kalau format-nya sistem gugur (Single Elimination)
   bool get isKnockout => format == 'Single Elimination';
 
-  // ===================== SETTER (dengan validasi) =====================
   static const _validStatus = ['Akan Datang', 'Berlangsung', 'Selesai'];
-  set status(String val) {
-    if (_validStatus.contains(val)) _status = val;
+  set status(String value) {
+    if (_validStatus.contains(value)) _status = value;
   }
 
-  set isFinished(bool val) => _isFinished = val;
+  set isFinished(bool value) => _isFinished = value;
 
-  // peserta disimpan di tabel terpisah, jadi tidak ikut di sini
   Map<String, Object?> toMap() => {
     'id_turnamen': id,
     'nama_turnamen': name,

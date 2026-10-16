@@ -146,19 +146,24 @@ class BracketTie extends StatelessWidget {
     const warningColor = Color(0xFFF59E0B);
 
     final firstLeg = legs.first;
-    final homeId = firstLeg.idPeserta1;
-    final awayId = firstLeg.idPeserta2;
+    final homeParticipantId = firstLeg.idPeserta1;
+    final awayParticipantId = firstLeg.idPeserta2;
 
-    final homeName = homeId != null ? (pesertaMap[homeId] ?? 'TBD') : 'TBD';
-    final awayName = awayId != null ? (pesertaMap[awayId] ?? 'TBD') : 'TBD';
+    final homeName = homeParticipantId == null
+        ? 'TBD'
+        : (pesertaMap[homeParticipantId] ?? 'TBD');
+    final awayName = awayParticipantId == null
+        ? 'TBD'
+        : (pesertaMap[awayParticipantId] ?? 'TBD');
 
     var homeScore = 0;
     var awayScore = 0;
     for (final leg in legs) {
-      if (homeId != null && leg.idPeserta1 == homeId) {
+      if (homeParticipantId != null && leg.idPeserta1 == homeParticipantId) {
         homeScore += leg.skor1;
         awayScore += leg.skor2;
-      } else if (awayId != null && leg.idPeserta1 == awayId) {
+      } else if (awayParticipantId != null &&
+          leg.idPeserta1 == awayParticipantId) {
         awayScore += leg.skor1;
         homeScore += leg.skor2;
       }
@@ -173,11 +178,11 @@ class BracketTie extends StatelessWidget {
           .where((leg) => leg.penalti1 != null && leg.penalti2 != null)
           .firstOrNull;
       if (penaltyLeg != null) {
-        final homeIsP1 = penaltyLeg.idPeserta1 == homeId;
-        final homePenalty = homeIsP1
+        final homeIsParticipant1 = penaltyLeg.idPeserta1 == homeParticipantId;
+        final homePenalty = homeIsParticipant1
             ? penaltyLeg.penalti1!
             : penaltyLeg.penalti2!;
-        final awayPenalty = homeIsP1
+        final awayPenalty = homeIsParticipant1
             ? penaltyLeg.penalti2!
             : penaltyLeg.penalti1!;
         homeWon = homePenalty > awayPenalty;

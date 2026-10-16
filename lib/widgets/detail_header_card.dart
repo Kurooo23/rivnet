@@ -18,13 +18,17 @@ class DetailHeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final t = turnamen;
+    final tournament = turnamen;
     final progress = totalCount > 0 ? selesaiCount / totalCount : 0.0;
-    final isComplete = progress == 1.0;
-    final width = MediaQuery.sizeOf(context).width;
-    final dateStr =
-        '${t.date.day.toString().padLeft(2, '0')}/${t.date.month.toString().padLeft(2, '0')}/${t.date.year}';
-    final legStr = t.jumlahLeg == 2 ? '2 Leg Home & Away' : '1 Leg';
+    final isComplete = selesaiCount == totalCount && totalCount > 0;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final date = tournament.date;
+    final formattedDate =
+        '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/${date.year}';
+    final legDescription = tournament.jumlahLeg == 2
+        ? '2 Leg Home & Away'
+        : '1 Leg';
 
     const successColor = Color(0xFF22C55E);
     const warningColor = Color(0xFFF59E0B);
@@ -34,7 +38,7 @@ class DetailHeaderCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all((width * 0.04).clamp(12.0, 20.0)),
+      padding: EdgeInsets.all((screenWidth * 0.04).clamp(12.0, 20.0)),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [bgCard, Color(0xFF0F172A)],
@@ -62,11 +66,11 @@ class DetailHeaderCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: (t.isFinished ? successColor : warningColor)
+                  color: (tournament.isFinished ? successColor : warningColor)
                       .withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: t.isFinished ? successColor : warningColor,
+                    color: tournament.isFinished ? successColor : warningColor,
                   ),
                 ),
                 child: Row(
@@ -74,15 +78,17 @@ class DetailHeaderCard extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 3,
-                      backgroundColor: t.isFinished
+                      backgroundColor: tournament.isFinished
                           ? successColor
                           : warningColor,
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      t.status,
+                      tournament.status,
                       style: TextStyle(
-                        color: t.isFinished ? successColor : warningColor,
+                        color: tournament.isFinished
+                            ? successColor
+                            : warningColor,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -98,12 +104,13 @@ class DetailHeaderCard extends StatelessWidget {
             runSpacing: 6,
             children: [
               _TagChip(
-                text: t.game,
+                text: tournament.game,
                 background: Colors.white.withValues(alpha: 0.08),
                 color: textSecondary,
               ),
               _TagChip(
-                text: '${t.kuota} Peserta · ${t.format} ($legStr)',
+                text:
+                    '${tournament.kuota} Peserta · ${tournament.format} ($legDescription)',
                 background: const Color(0xFF6366F1).withValues(alpha: 0.15),
                 color: const Color(0xFFA5B4FC),
               ),
@@ -120,16 +127,16 @@ class DetailHeaderCard extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  dateStr,
+                  formattedDate,
                   style: const TextStyle(color: textSecondary, fontSize: 12),
                 ),
               ),
             ],
           ),
-          if (t.deskripsi?.isNotEmpty ?? false) ...[
+          if (tournament.deskripsi?.isNotEmpty ?? false) ...[
             const SizedBox(height: 6),
             Text(
-              t.deskripsi!,
+              tournament.deskripsi!,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: textMuted, fontSize: 12),
@@ -170,7 +177,7 @@ class DetailHeaderCard extends StatelessWidget {
               ),
             ),
           ),
-          if (t.isFinished) ...[
+          if (tournament.isFinished) ...[
             const SizedBox(height: 12),
             Container(
               width: double.infinity,
@@ -196,7 +203,7 @@ class DetailHeaderCard extends StatelessWidget {
                 ],
               ),
             ),
-          ] else if (isComplete && totalCount > 0) ...[
+          ] else if (isComplete) ...[
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,

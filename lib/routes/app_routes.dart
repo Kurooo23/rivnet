@@ -1,5 +1,4 @@
-/// Daftar nama route untuk navigasi GetX.
-/// Dipakai di: Get.toNamed(AppRoutes.detail)
+/// Nama route yang digunakan untuk navigasi GetX.
 abstract class AppRoutes {
   static const home = '/';
   static const create = '/create';

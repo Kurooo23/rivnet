@@ -48,7 +48,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
 
   List<Pertandingan> _pertandinganList = [];
   List<_PesertaData> _pesertaList = [];
-  Map<String, String> _pesertaMap = {}; // idPeserta -> namaPeserta
+  Map<String, String> _pesertaMap = {};
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -59,7 +59,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadTournamentData();
   }
 
   @override
@@ -68,9 +68,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     super.dispose();
   }
 
-  // ===================== MEMUAT & GENERATE DATA =====================
-
-  Future<void> _loadData() async {
+  Future<void> _loadTournamentData() async {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
@@ -78,19 +76,19 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
 
     final db = DatabaseHelper.instance;
     try {
-      final tList = await db.getTournaments();
-      final current = tList.firstWhere(
-        (t) => t.id == _turnamen.id,
+      final savedTournaments = await db.getTournaments();
+      final currentTournament = savedTournaments.firstWhere(
+        (tournament) => tournament.id == _turnamen.id,
         orElse: () => _turnamen,
       );
 
-      final pRows = await db.getPeserta(_turnamen.id!);
+      final participantRows = await db.getPeserta(_turnamen.id!);
       final pesertaList = [
-        for (final r in pRows)
+        for (final row in participantRows)
           _PesertaData(
-            id: r['id_peserta'] as String,
-            nama: r['nama_peserta'] as String,
-            urutan: r['urutan'] as int,
+            id: row['id_peserta'] as String,
+            nama: row['nama_peserta'] as String,
+            urutan: row['urutan'] as int,
           ),
       ];
 
@@ -99,14 +97,14 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
       var matches = await db.getMatches(_turnamen.id!);
 
       if (matches.isEmpty && pesertaList.length >= 2) {
-        matches = await _generateAndSaveMatches(current, pesertaList);
+        matches = await _generateAndSaveMatches(currentTournament, pesertaList);
       } else if (matches.isNotEmpty) {
         await _propagateBracket(matches);
       }
 
       if (!mounted) return;
       setState(() {
-        _turnamen = current;
+        _turnamen = currentTournament;
         _pesertaList = pesertaList;
         _pesertaMap = pesertaMap;
         _pertandinganList = matches;
@@ -121,7 +119,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     }
   }
 
-  /// Propagasi otomatis pemenang ke Final/nextId dan tim kalah Semifinal ke Perebutan Juara 3
+  /// Meneruskan pemenang semifinal ke final dan yang kalah ke perebutan juara 3.
   Future<void> _propagateBracket(List<Pertandingan> matches) async {
     if (!_isKnockout) return;
 
@@ -233,7 +231,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
           }
         }
 
-        // Propagasi Tim Kalah ke Perebutan Juara 3 (1 Leg / 2 Leg)
         if (loserId != null && juara3Matches.isNotEmpty) {
           final j1 = juara3Matches.first;
           final j2 = juara3Matches.length > 1 ? juara3Matches[1] : null;
@@ -501,7 +498,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
         prevRoundMatchIds = nextRoundMatchIds;
       }
 
-      // Perebutan Juara 3 jika minimal 4 peserta
       if (peserta.length >= 4) {
         if (isTwoLeg) {
           final m1Id = 'm_${t.id}_juara3_leg1';
@@ -634,8 +630,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     ];
   }
 
-  // ===================== KALKULASI KLASEMEN =====================
-
   List<KlasemenItem> _calculateKlasemen() {
     final stats = {
       for (final p in _pesertaList)
@@ -695,8 +689,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     return Map.fromEntries(rounds);
   }
 
-  // ===================== AKSI =====================
-
   Future<void> _deleteTurnamen() async {
     final confirmed = await _showConfirmDialog(
       icon: Icons.warning_amber_rounded,
@@ -738,7 +730,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
         'Turnamen telah diakhiri! Skor dikunci.',
         color: _successColor,
       );
-      _loadData();
+      _loadTournamentData();
     } catch (e) {
       if (mounted) _showSnack('Gagal mengakhiri: $e', color: _errorColor);
     }
@@ -747,7 +739,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
   Future<void> _openEditScreen() async {
     final result = await Get.toNamed(AppRoutes.edit, arguments: _turnamen);
     if (result == true) {
-      _loadData();
+      _loadTournamentData();
     }
   }
 
@@ -814,7 +806,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
       await db.updateStatus(_turnamen.id!, 'Berlangsung');
     }
 
-    await _loadData();
+    await _loadTournamentData();
   }
 
   void _showSnack(String message, {Color? color}) {
@@ -859,8 +851,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     return result ?? false;
   }
 
-  // ===================== BUILD MAIN UI =====================
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -892,7 +882,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _loadData,
+                onPressed: _loadTournamentData,
                 child: const Text('Coba Lagi'),
               ),
             ],
@@ -902,9 +892,9 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     }
 
     final layout = PageLayout.of(context);
-    final side = layout.sidePadding;
+    final sidePadding = layout.sidePadding;
     final listColumns = layout.width >= 720 ? 2 : 1;
-    final t = _turnamen;
+    final tournament = _turnamen;
 
     final selesaiCount = _pertandinganList
         .where((m) => m.status == 'Selesai')
@@ -916,7 +906,11 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
       appBar: AppBar(
         backgroundColor: _bgDark,
         foregroundColor: _textPrimary,
-        title: Text(t.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(
+          tournament.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_rounded, color: _textPrimary),
@@ -934,16 +928,16 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.fromLTRB(side, 8, side, 12),
+              padding: EdgeInsets.fromLTRB(sidePadding, 8, sidePadding, 12),
               child: DetailHeaderCard(
-                turnamen: t,
+                turnamen: tournament,
                 selesaiCount: selesaiCount,
                 totalCount: totalCount,
                 onAkhiri: _akhiriTurnamen,
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: side),
+              padding: EdgeInsets.symmetric(horizontal: sidePadding),
               child: DetailTabBar(
                 controller: _tabController,
                 isKnockout: _isKnockout,
@@ -961,27 +955,27 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
                     BracketView(
                       matches: _pertandinganList,
                       pesertaMap: _pesertaMap,
-                      legCount: t.jumlahLeg,
+                      legCount: tournament.jumlahLeg,
                       columnWidth: (layout.width * 0.62).clamp(200.0, 280.0),
                       connectorWidth: (layout.width * 0.07).clamp(20.0, 40.0),
-                      sidePadding: side,
+                      sidePadding: sidePadding,
                       onTapMatch: _openInputSkor,
                     )
                   else
                     KlasemenView(
                       klasemen: _calculateKlasemen(),
-                      sidePadding: side,
+                      sidePadding: sidePadding,
                     ),
                   MatchListView(
                     grouped: _groupedMatches(),
                     pesertaMap: _pesertaMap,
-                    isLocked: t.isFinished,
+                    isLocked: tournament.isFinished,
                     columns: listColumns,
                     gap: layout.gap,
-                    sidePadding: side,
+                    sidePadding: sidePadding,
                     onTapMatch: _openInputSkor,
                   ),
-                  _pesertaView(side),
+                  _pesertaView(sidePadding),
                 ],
               ),
             ),

@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '../models/match.dart';
 
-// ===== KONSTANTA WARNA TEMA =====
 const _bgDarkSecondary = Color(0xFF182234);
 const _bgCard = Color(0xFF1E293B);
 const _textPrimary = Colors.white;
@@ -67,14 +66,12 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
     super.dispose();
   }
 
-  /// Cek apakah butuh adu penalti untuk Sepak Bola / Futsal
+  /// Adu penalti hanya berlaku untuk hasil imbang pada babak gugur.
   bool get _needsPenaltyShootout {
     if (!widget.isKnockout || _status != 'Selesai') return false;
 
-    // 1 Leg knockout: adu penalti jika skor imbang
     if (!widget.isTwoLeg) return _score1 == _score2;
 
-    // 2 Leg knockout: adu penalti HANYA jika ini Leg 2 dan TOTAL AGREGAT imbang
     if (!widget.match.babak.startsWith('Leg 2 - ')) return false;
 
     final prev1 = widget.previousLegScore1 ?? 0;
@@ -87,14 +84,14 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
   }
 
   Future<void> _submit() async {
-    int? p1;
-    int? p2;
+    int? penaltyScore1;
+    int? penaltyScore2;
 
     if (_needsPenaltyShootout) {
-      p1 = int.tryParse(_penalty1Controller.text.trim());
-      p2 = int.tryParse(_penalty2Controller.text.trim());
+      penaltyScore1 = int.tryParse(_penalty1Controller.text.trim());
+      penaltyScore2 = int.tryParse(_penalty2Controller.text.trim());
 
-      if (p1 == null || p2 == null) {
+      if (penaltyScore1 == null || penaltyScore2 == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -105,7 +102,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
         );
         return;
       }
-      if (p1 == p2) {
+      if (penaltyScore1 == penaltyScore2) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Adu penalti tidak boleh imbang.'),
@@ -118,7 +115,13 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
 
     setState(() => _isSaving = true);
     try {
-      await widget.onSaved(widget.match, _score1, _score2, p1, p2);
+      await widget.onSaved(
+        widget.match,
+        _score1,
+        _score2,
+        penaltyScore1,
+        penaltyScore2,
+      );
       if (!mounted) return;
       Get.back();
     } catch (e) {
@@ -170,10 +173,10 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
     final screen = MediaQuery.sizeOf(context);
     final scoreFontSize = (screen.width * 0.08).clamp(24.0, 36.0);
 
-    final p1Name = widget.match.idPeserta1 != null
+    final firstParticipantName = widget.match.idPeserta1 != null
         ? (widget.pesertaMap[widget.match.idPeserta1] ?? 'TBD')
         : 'TBD';
-    final p2Name = widget.match.idPeserta2 != null
+    final secondParticipantName = widget.match.idPeserta2 != null
         ? (widget.pesertaMap[widget.match.idPeserta2] ?? 'TBD')
         : 'TBD';
 
@@ -195,7 +198,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
     }
 
     final card1 = _ScoreCard(
-      name: p1Name,
+      name: firstParticipantName,
       score: '$_score1',
       scoreFontSize: scoreFontSize,
       isLeading: isP1Leading,
@@ -206,7 +209,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
     );
 
     final card2 = _ScoreCard(
-      name: p2Name,
+      name: secondParticipantName,
       score: '$_score2',
       scoreFontSize: scoreFontSize,
       isLeading: isP2Leading,
@@ -231,7 +234,6 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
               Row(
                 children: [
                   const Icon(
@@ -260,7 +262,6 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
               ),
               const Divider(color: Colors.white12, height: 20),
 
-              // Skor Total: dua kartu dibagi rata 1:1
               if (screen.width < 330)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -309,7 +310,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
                     Expanded(
                       child: _PenaltyField(
                         controller: _penalty1Controller,
-                        label: p1Name,
+                        label: firstParticipantName,
                       ),
                     ),
                     const Padding(
@@ -325,7 +326,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
                     Expanded(
                       child: _PenaltyField(
                         controller: _penalty2Controller,
-                        label: p2Name,
+                        label: secondParticipantName,
                       ),
                     ),
                   ],

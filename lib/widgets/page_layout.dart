@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// MediaQuery dibungkus di sini supaya build tidak penuh hitungan ukuran
+/// Ukuran layar dan jarak yang dipakai bersama oleh halaman-halaman aplikasi.
 class PageLayout {
   PageLayout._({
     required this.width,
@@ -28,7 +28,7 @@ class PageLayout {
   final double maxWidth;
   final double paddingRatio;
 
-  bool get isWide => width >= 600; // section berdampingan, peserta 2 kolom
+  bool get isWide => width >= 600;
   bool get isNarrow => width < 360;
   bool get isShort => height < 600;
   double get sidePadding => width * paddingRatio;

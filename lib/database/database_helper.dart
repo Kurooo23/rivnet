@@ -57,7 +57,6 @@ class DatabaseHelper {
       )
     ''');
 
-    // Khusus Sepak Bola / Futsal: skor gol + adu penalti + leg (Home & Away)
     await db.execute('''
       CREATE TABLE pertandingan (
         id_pertandingan        TEXT PRIMARY KEY,
@@ -83,21 +82,19 @@ class DatabaseHelper {
   String _newId(String prefix) =>
       '${prefix}_${DateTime.now().microsecondsSinceEpoch}';
 
-  // ===================== TURNAMEN =====================
-
-  Future<String> insertTournament(Tournament t) async {
+  Future<String> insertTournament(Tournament tournament) async {
     final db = await database;
     final id = _newId('trn');
-    t.id = id;
+    tournament.id = id;
 
     await db.transaction((txn) async {
-      await txn.insert('turnamen', t.toMap());
-      for (var i = 0; i < t.peserta.length; i++) {
+      await txn.insert('turnamen', tournament.toMap());
+      for (var i = 0; i < tournament.peserta.length; i++) {
         await txn.insert('peserta', {
           'id_peserta': '${id}_p$i',
           'id_turnamen': id,
           'urutan': i,
-          'nama_peserta': t.peserta[i],
+          'nama_peserta': tournament.peserta[i],
         });
       }
     });
@@ -113,15 +110,15 @@ class DatabaseHelper {
     );
 
     final byTournament = <String, List<String>>{};
-    for (final p in pesertaRows) {
+    for (final participant in pesertaRows) {
       byTournament
-          .putIfAbsent(p['id_turnamen'] as String, () => [])
-          .add(p['nama_peserta'] as String);
+          .putIfAbsent(participant['id_turnamen'] as String, () => [])
+          .add(participant['nama_peserta'] as String);
     }
 
     return [
-      for (final r in rows)
-        Tournament.fromMap(r, byTournament[r['id_turnamen']] ?? []),
+      for (final row in rows)
+        Tournament.fromMap(row, byTournament[row['id_turnamen']] ?? []),
     ];
   }
 
@@ -172,8 +169,6 @@ class DatabaseHelper {
     await db.delete('turnamen', where: 'id_turnamen = ?', whereArgs: [id]);
   }
 
-  // ===================== PESERTA =====================
-
   Future<List<Map<String, Object?>>> getPeserta(String idTurnamen) async {
     final db = await database;
     return db.query(
@@ -184,8 +179,6 @@ class DatabaseHelper {
     );
   }
 
-  // ===================== PERTANDINGAN =====================
-
   Future<List<Pertandingan>> getMatches(String idTurnamen) async {
     final db = await database;
     final rows = await db.query(
@@ -194,14 +187,14 @@ class DatabaseHelper {
       whereArgs: [idTurnamen],
       orderBy: 'urutan, leg',
     );
-    return [for (final r in rows) Pertandingan.fromMap(r)];
+    return [for (final row in rows) Pertandingan.fromMap(row)];
   }
 
   Future<void> insertMatches(List<Pertandingan> matches) async {
     final db = await database;
     final batch = db.batch();
-    for (final m in matches) {
-      batch.insert('pertandingan', m.toMap());
+    for (final match in matches) {
+      batch.insert('pertandingan', match.toMap());
     }
     await batch.commit(noResult: true);
   }

@@ -32,8 +32,8 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
   late final _deskripsiController = TextEditingController(
     text: widget.tournament.deskripsi ?? '',
   );
-  late final String _tipeGame = widget.tournament.game;
-  late String _status = widget.tournament.status;
+  late final String _gameType = widget.tournament.game;
+  late String _selectedStatus = widget.tournament.status;
   bool _isLoading = false;
 
   @override
@@ -43,7 +43,7 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
     super.dispose();
   }
 
-  Future<void> _updateTurnamen() async {
+  Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
 
@@ -55,8 +55,8 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
         id: widget.tournament.id!,
         name: _namaController.text.trim(),
         deskripsi: deskripsi,
-        game: _tipeGame,
-        status: _status,
+        game: _gameType,
+        status: _selectedStatus,
       );
 
       if (!mounted) return;
@@ -82,14 +82,11 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
   }
 
   Color _statusColor(String status) {
-    switch (status) {
-      case 'Selesai':
-        return _successColor;
-      case 'Berlangsung':
-        return _warningColor;
-      default:
-        return const Color(0xFF38BDF8);
-    }
+    return switch (status) {
+      'Selesai' => _successColor,
+      'Berlangsung' => _warningColor,
+      _ => const Color(0xFF38BDF8),
+    };
   }
 
   @override
@@ -136,7 +133,7 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
           children: [
             Chip(
               avatar: const Icon(Icons.sports_soccer_rounded, size: 18),
-              label: Text(_tipeGame),
+              label: Text(_gameType),
             ),
           ],
         ),
@@ -157,15 +154,15 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
                 for (final option in _statusOptions)
                   ChoiceChip(
                     label: Text(option),
-                    selected: _status == option,
+                    selected: _selectedStatus == option,
                     selectedColor: _statusColor(option).withValues(alpha: 0.3),
                     labelStyle: TextStyle(
-                      color: _status == option
+                      color: _selectedStatus == option
                           ? _statusColor(option)
                           : _textSecondary,
                       fontWeight: FontWeight.bold,
                     ),
-                    onSelected: (_) => setState(() => _status = option),
+                    onSelected: (_) => setState(() => _selectedStatus = option),
                   ),
               ],
             ),
@@ -198,7 +195,7 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
               ),
               SizedBox(height: sectionGap + 8),
               FilledButton(
-                onPressed: _isLoading ? null : _updateTurnamen,
+                onPressed: _isLoading ? null : _saveChanges,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   child: _isLoading

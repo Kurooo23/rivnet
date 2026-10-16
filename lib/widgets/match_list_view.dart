@@ -84,12 +84,12 @@ class MatchListView extends StatelessWidget {
                 ],
               ),
             ),
-            for (final m in round.value)
+            for (final match in round.value)
               MatchCard(
-                match: m,
+                match: match,
                 pesertaMap: pesertaMap,
                 isLocked: isLocked,
-                onTap: () => onTapMatch(m),
+                onTap: () => onTapMatch(match),
               ),
           ],
         );
@@ -112,13 +112,18 @@ class MatchCard extends StatelessWidget {
   final bool isLocked;
   final VoidCallback onTap;
 
-  bool _wins(int own, int other, int? ownPen, int? otherPen) {
+  bool _wins(
+    int ownScore,
+    int opponentScore,
+    int? ownPenalty,
+    int? opponentPenalty,
+  ) {
     if (match.status != 'Selesai') return false;
-    if (own > other) return true;
-    return own == other &&
-        ownPen != null &&
-        otherPen != null &&
-        ownPen > otherPen;
+    if (ownScore > opponentScore) return true;
+    return ownScore == opponentScore &&
+        ownPenalty != null &&
+        opponentPenalty != null &&
+        ownPenalty > opponentPenalty;
   }
 
   @override
@@ -128,19 +133,18 @@ class MatchCard extends StatelessWidget {
     const successColor = Color(0xFF22C55E);
     const warningColor = Color(0xFFF59E0B);
 
-    final m = match;
-    final isFinished = m.status == 'Selesai';
-    final p1Name = m.idPeserta1 != null
-        ? (pesertaMap[m.idPeserta1] ?? 'TBD')
+    final isFinished = match.status == 'Selesai';
+    final firstParticipant = match.idPeserta1 != null
+        ? (pesertaMap[match.idPeserta1] ?? 'TBD')
         : 'TBD';
-    final p2Name = m.idPeserta2 != null
-        ? (pesertaMap[m.idPeserta2] ?? 'TBD')
+    final secondParticipant = match.idPeserta2 != null
+        ? (pesertaMap[match.idPeserta2] ?? 'TBD')
         : 'TBD';
 
     Color badgeColor = textMuted;
     if (isFinished) {
       badgeColor = successColor;
-    } else if (m.idPeserta1 != null && m.idPeserta2 != null) {
+    } else if (match.idPeserta1 != null && match.idPeserta2 != null) {
       badgeColor = warningColor;
     }
 
@@ -177,7 +181,7 @@ class MatchCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        'Laga #${m.urutan}',
+                        'Laga #${match.urutan}',
                         style: const TextStyle(
                           color: textMuted,
                           fontSize: 11,
@@ -195,7 +199,7 @@ class MatchCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        m.status,
+                        match.status,
                         style: TextStyle(
                           color: badgeColor,
                           fontSize: 10,
@@ -213,9 +217,14 @@ class MatchCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 ScoreLine(
-                  name: p1Name,
-                  score: '${m.skor1}',
-                  isWinner: _wins(m.skor1, m.skor2, m.penalti1, m.penalti2),
+                  name: firstParticipant,
+                  score: '${match.skor1}',
+                  isWinner: _wins(
+                    match.skor1,
+                    match.skor2,
+                    match.penalti1,
+                    match.penalti2,
+                  ),
                   isFinished: isFinished,
                 ),
                 const Padding(
@@ -223,15 +232,20 @@ class MatchCard extends StatelessWidget {
                   child: Divider(color: Colors.white10, height: 1),
                 ),
                 ScoreLine(
-                  name: p2Name,
-                  score: '${m.skor2}',
-                  isWinner: _wins(m.skor2, m.skor1, m.penalti2, m.penalti1),
+                  name: secondParticipant,
+                  score: '${match.skor2}',
+                  isWinner: _wins(
+                    match.skor2,
+                    match.skor1,
+                    match.penalti2,
+                    match.penalti1,
+                  ),
                   isFinished: isFinished,
                 ),
-                if (m.penalti1 != null && m.penalti2 != null) ...[
+                if (match.penalti1 != null && match.penalti2 != null) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'Adu penalti ${m.penalti1}-${m.penalti2}',
+                    'Adu penalti ${match.penalti1}-${match.penalti2}',
                     style: const TextStyle(
                       color: warningColor,
                       fontSize: 11,

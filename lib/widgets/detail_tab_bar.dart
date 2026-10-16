@@ -16,13 +16,13 @@ class DetailTabBar extends StatelessWidget {
   final int pesertaCount;
   final bool showIcons;
 
-  Tab _tab(IconData icon, String text) {
+  Tab _buildTab(IconData icon, String label) {
     return Tab(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (showIcons) ...[Icon(icon, size: 16), const SizedBox(width: 6)],
-          Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
+          Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -56,10 +56,10 @@ class DetailTabBar extends StatelessWidget {
         labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         tabs: [
           isKnockout
-              ? _tab(Icons.account_tree_rounded, 'Bagan')
-              : _tab(Icons.leaderboard_rounded, 'Klasemen'),
-          _tab(Icons.sports_esports_rounded, 'Laga ($matchCount)'),
-          _tab(Icons.groups_rounded, 'Peserta ($pesertaCount)'),
+              ? _buildTab(Icons.account_tree_rounded, 'Bagan')
+              : _buildTab(Icons.leaderboard_rounded, 'Klasemen'),
+          _buildTab(Icons.sports_esports_rounded, 'Laga ($matchCount)'),
+          _buildTab(Icons.groups_rounded, 'Peserta ($pesertaCount)'),
         ],
       ),
     );
