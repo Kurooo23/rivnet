@@ -38,8 +38,7 @@ class _MainShellState extends State<MainShell> {
   }
 
   Future<void> _createTournament() async {
-    final tournament =
-        await Get.toNamed(AppRoutes.create) as Tournament?;
+    final tournament = await Get.toNamed(AppRoutes.create) as Tournament?;
     if (tournament == null) return;
 
     await _database.insertTournament(tournament);
@@ -67,16 +66,16 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final activeTournaments =
-        _tournaments.where((tournament) => !tournament.isFinished).toList();
-    final finishedTournaments =
-        _tournaments.where((tournament) => tournament.isFinished).toList();
+    final activeTournaments = _tournaments
+        .where((tournament) => !tournament.isFinished)
+        .toList();
+    final finishedTournaments = _tournaments
+        .where((tournament) => tournament.isFinished)
+        .toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          _selectedTab == 0 ? 'RivNet Offline' : 'Riwayat Turnamen',
-        ),
+        title: Text(_selectedTab == 0 ? 'RivNet Offline' : 'Riwayat Turnamen'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
