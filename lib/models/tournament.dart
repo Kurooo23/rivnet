@@ -1,18 +1,4 @@
 class Tournament {
-  Tournament({
-    this.id,
-    required this.name,
-    required this.game,
-    required this.date,
-    this.deskripsi,
-    this.format = 'Single Elimination',
-    this.jumlahLeg = 1,
-    this.kuota = 4,
-    this.peserta = const [],
-    this._status = 'Akan Datang',
-    bool isFinished = false,
-  }) : _isFinished = isFinished;
-
   String? id;
   final String name;
   final String game;
@@ -25,6 +11,20 @@ class Tournament {
   String _status;
   bool _isFinished;
 
+  Tournament({
+    this.id,
+    required this.name,
+    required this.game,
+    required this.date,
+    this.deskripsi,
+    this.format = 'Single Elimination',
+    this.jumlahLeg = 1,
+    this.kuota = 4,
+    this.peserta = const [],
+    this._status = 'Akan Datang',
+    this._isFinished = false,
+  });
+
   String get status => _status;
   bool get isFinished => _isFinished;
 
@@ -35,7 +35,11 @@ class Tournament {
     if (_validStatus.contains(value)) _status = value;
   }
 
-  set isFinished(bool value) => _isFinished = value;
+  // kalau turnamen ditandai selesai, statusnya ikut jadi 'Selesai'
+  set isFinished(bool value) {
+    _isFinished = value;
+    if (value) _status = 'Selesai';
+  }
 
   Map<String, Object?> toMap() => {
     'id_turnamen': id,

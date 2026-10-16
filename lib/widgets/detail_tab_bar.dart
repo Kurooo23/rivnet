@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
 class DetailTabBar extends StatelessWidget {
+  final TabController controller;
+  final bool isKnockout;
+  final int matchCount;
+  final int pesertaCount;
+  final bool showIcons;
+
   const DetailTabBar({
     super.key,
     required this.controller,
@@ -9,12 +15,6 @@ class DetailTabBar extends StatelessWidget {
     required this.pesertaCount,
     required this.showIcons,
   });
-
-  final TabController controller;
-  final bool isKnockout;
-  final int matchCount;
-  final int pesertaCount;
-  final bool showIcons;
 
   Tab _buildTab(IconData icon, String label) {
     return Tab(

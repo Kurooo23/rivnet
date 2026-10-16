@@ -1,17 +1,16 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-
-import '../models/match.dart';
-import '../models/tournament.dart';
+import 'package:rivnet/models/match.dart';
+import 'package:rivnet/models/tournament.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._internal();
   static Database? _db;
 
-  DatabaseHelper._internal();
-
   static const _dbName = 'rivnet_uts.db';
   static const _dbVersion = 1;
+
+  DatabaseHelper._internal();
 
   Future<Database> get database async {
     _db ??= await _initDb();

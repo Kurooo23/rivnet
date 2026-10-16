@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../models/tournament.dart';
-import '../routes/app_routes.dart';
-import '../widgets/tournament_list.dart';
+import 'package:rivnet/models/tournament.dart';
+import 'package:rivnet/routes/app_routes.dart';
+import 'package:rivnet/widgets/tournament_list.dart';
 
 class HistoryScreen extends StatelessWidget {
-  const HistoryScreen({super.key, required this.tournaments, this.onRefresh});
-
   final List<Tournament> tournaments;
   final VoidCallback? onRefresh;
+
+  const HistoryScreen({super.key, required this.tournaments, this.onRefresh});
 
   @override
   Widget build(BuildContext context) {

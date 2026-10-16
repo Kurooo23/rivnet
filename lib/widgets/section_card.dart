@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 const _sectionFlex = 1;
 
 class PairRow extends StatelessWidget {
+  final bool isWide;
+  final double gap;
+  final Widget left;
+  final Widget right;
+
   const PairRow({
     super.key,
     required this.isWide,
@@ -10,11 +15,6 @@ class PairRow extends StatelessWidget {
     required this.left,
     required this.right,
   });
-
-  final bool isWide;
-  final double gap;
-  final Widget left;
-  final Widget right;
 
   @override
   Widget build(BuildContext context) {
@@ -39,16 +39,16 @@ class PairRow extends StatelessWidget {
 }
 
 class SectionCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final List<Widget> children;
+
   const SectionCard({
     super.key,
     required this.icon,
     required this.title,
     required this.children,
   });
-
-  final IconData icon;
-  final String title;
-  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
@@ -81,9 +81,9 @@ class SectionCard extends StatelessWidget {
 }
 
 class HintText extends StatelessWidget {
-  const HintText(this.text, {super.key});
-
   final String text;
+
+  const HintText(this.text, {super.key});
 
   @override
   Widget build(BuildContext context) {

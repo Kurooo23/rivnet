@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 class PesertaGrid extends StatelessWidget {
+  final int columns;
+  final double gap;
+  final List<TextEditingController> controllers;
+
   const PesertaGrid({
     super.key,
     required this.columns,
     required this.gap,
     required this.controllers,
   });
-
-  final int columns;
-  final double gap;
-  final List<TextEditingController> controllers;
 
   @override
   Widget build(BuildContext context) {
@@ -48,10 +48,10 @@ class PesertaGrid extends StatelessWidget {
 }
 
 class _PesertaField extends StatelessWidget {
-  const _PesertaField({required this.index, required this.controller});
-
   final int index;
   final TextEditingController controller;
+
+  const _PesertaField({required this.index, required this.controller});
 
   @override
   Widget build(BuildContext context) {

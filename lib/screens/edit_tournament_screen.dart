@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../database/database_helper.dart';
-import '../models/tournament.dart';
-import '../widgets/page_layout.dart';
-import '../widgets/section_card.dart';
+import 'package:rivnet/database/database_helper.dart';
+import 'package:rivnet/models/tournament.dart';
+import 'package:rivnet/widgets/page_layout.dart';
+import 'package:rivnet/widgets/section_card.dart';
 
 const _statusOptions = ['Akan Datang', 'Berlangsung', 'Selesai'];
 
@@ -16,9 +15,9 @@ const _warningColor = Color(0xFFF59E0B);
 const _errorColor = Color(0xFFEF4444);
 
 class EditTournamentScreen extends StatefulWidget {
-  const EditTournamentScreen({super.key, required this.tournament});
-
   final Tournament tournament;
+
+  const EditTournamentScreen({super.key, required this.tournament});
 
   @override
   State<EditTournamentScreen> createState() => _EditTournamentScreenState();
@@ -45,7 +44,9 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
 
   Future<void> _saveChanges() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       final deskripsiText = _deskripsiController.text.trim();
@@ -77,7 +78,11 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -162,7 +167,9 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
                           : _textSecondary,
                       fontWeight: FontWeight.bold,
                     ),
-                    onSelected: (_) => setState(() => _selectedStatus = option),
+                    onSelected: (_) => setState(() {
+                      _selectedStatus = option;
+                    }),
                   ),
               ],
             ),

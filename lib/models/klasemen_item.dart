@@ -1,5 +1,14 @@
-/// Statistik satu peserta dalam klasemen.
+// Statistik satu peserta dalam klasemen.
 class KlasemenItem {
+  final String idPeserta;
+  final String namaPeserta;
+  int main;
+  int menang;
+  int seri;
+  int kalah;
+  int gm;
+  int gk;
+
   KlasemenItem({
     required this.idPeserta,
     required this.namaPeserta,
@@ -10,15 +19,6 @@ class KlasemenItem {
     this.gm = 0,
     this.gk = 0,
   });
-
-  final String idPeserta;
-  final String namaPeserta;
-  int main;
-  int menang;
-  int seri;
-  int kalah;
-  int gm;
-  int gk;
 
   int get sg => gm - gk;
   int get poin => (menang * 3) + seri;

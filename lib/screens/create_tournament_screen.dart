@@ -1,24 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../models/tournament.dart';
-import '../widgets/kuota_section.dart';
-import '../widgets/page_layout.dart';
-import '../widgets/peserta_grid.dart';
-import '../widgets/section_card.dart';
-
-const _legFlex = [1, 1];
-const _gridColumns = 2;
+import 'package:rivnet/models/tournament.dart';
+import 'package:rivnet/widgets/kuota_section.dart';
+import 'package:rivnet/widgets/page_layout.dart';
+import 'package:rivnet/widgets/peserta_grid.dart';
+import 'package:rivnet/widgets/section_card.dart';
 
 const _game = 'Sepak Bola / Futsal';
 const _singleElim = 'Single Elimination';
 
 class _BracketFormat {
-  const _BracketFormat(this.name, this.desc, this.icon);
-
   final String name;
   final String desc;
   final IconData icon;
+
+  const _BracketFormat(this.name, this.desc, this.icon);
 }
 
 const _formats = [
@@ -58,7 +54,10 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
 
   bool get _isElimination => _format.name == _singleElim;
 
-  List<int> get _eliminationOptions => const [2, 4, 8, 16, 32, 64];
+  // single elimination harus kelipatan 2 biar bagannya pas
+  List<int> get _kuotaOptions => _isElimination
+      ? const [2, 4, 8, 16, 32, 64]
+      : const [2, 3, 4, 5, 6, 8, 10, 12, 16];
 
   @override
   void initState() {
@@ -92,7 +91,7 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   void _onFormatChanged(_BracketFormat format) {
     setState(() {
       _format = format;
-      if (_isElimination && !_eliminationOptions.contains(_kuota)) _kuota = 4;
+      if (_isElimination && !_kuotaOptions.contains(_kuota)) _kuota = 4;
       _updateParticipantFields(_kuota);
     });
   }
@@ -114,12 +113,31 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
   }
 
   List<String> _participantNames() {
-    return [
-      for (var index = 0; index < _pesertaControllers.length; index++)
-        _pesertaControllers[index].text.trim().isEmpty
-            ? 'Peserta ${index + 1}'
-            : _pesertaControllers[index].text.trim(),
-    ];
+    final names = <String>[];
+    for (var i = 0; i < _pesertaControllers.length; i++) {
+      final name = _pesertaControllers[i].text.trim();
+      names.add(name.isEmpty ? 'Peserta ${i + 1}' : name);
+    }
+    return names;
+  }
+
+  Widget _legChip(int leg, String label) {
+    return Expanded(
+      child: ChoiceChip(
+        label: SizedBox(
+          width: double.infinity,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        selected: _jumlahLeg == leg,
+        onSelected: (_) => setState(() {
+          _jumlahLeg = leg;
+        }),
+      ),
+    );
   }
 
   void _createTournament() {
@@ -239,39 +257,9 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                       children: [
                         Row(
                           children: [
-                            Expanded(
-                              flex: _legFlex[0],
-                              child: ChoiceChip(
-                                label: const SizedBox(
-                                  width: double.infinity,
-                                  child: Text(
-                                    '1x Tanding',
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                selected: _jumlahLeg == 1,
-                                onSelected: (_) =>
-                                    setState(() => _jumlahLeg = 1),
-                              ),
-                            ),
+                            _legChip(1, '1x Tanding'),
                             const SizedBox(width: 8),
-                            Expanded(
-                              flex: _legFlex[1],
-                              child: ChoiceChip(
-                                label: const SizedBox(
-                                  width: double.infinity,
-                                  child: Text(
-                                    'Home & Away',
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                selected: _jumlahLeg == 2,
-                                onSelected: (_) =>
-                                    setState(() => _jumlahLeg = 2),
-                              ),
-                            ),
+                            _legChip(2, 'Home & Away'),
                           ],
                         ),
                         const SizedBox(height: 8),
@@ -289,17 +277,13 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                     kuota: _kuota,
                     format: _format.name,
                     isElimination: _isElimination,
-                    options: _isElimination
-                        ? _eliminationOptions
-                        : const [2, 3, 4, 5, 6, 8, 10, 12, 16],
+                    options: _kuotaOptions,
                     onChanged: _changeKuota,
                     onCustom: _openCustomKuota,
                   ),
-                  SizedBox(height: sectionGap + 4),
-
-                  const SizedBox(height: 8),
+                  SizedBox(height: sectionGap + 12),
                   PesertaGrid(
-                    columns: layout.isWide ? _gridColumns : 1,
+                    columns: layout.isWide ? 2 : 1,
                     gap: layout.gap,
                     controllers: _pesertaControllers,
                   ),

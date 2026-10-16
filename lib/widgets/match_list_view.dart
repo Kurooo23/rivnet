@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
-
-import '../models/match.dart';
-import 'bracket_view.dart';
+import 'package:rivnet/models/match.dart';
+import 'package:rivnet/widgets/bracket_view.dart';
 
 class MatchListView extends StatelessWidget {
+  final Map<String, List<Pertandingan>> grouped;
+  final Map<String, String> pesertaMap;
+  final bool isLocked;
+  final int columns;
+  final double gap;
+  final double sidePadding;
+  final ValueChanged<Pertandingan> onTapMatch;
+
   const MatchListView({
     super.key,
     required this.grouped,
@@ -14,14 +21,6 @@ class MatchListView extends StatelessWidget {
     required this.sidePadding,
     required this.onTapMatch,
   });
-
-  final Map<String, List<Pertandingan>> grouped;
-  final Map<String, String> pesertaMap;
-  final bool isLocked;
-  final int columns;
-  final double gap;
-  final double sidePadding;
-  final ValueChanged<Pertandingan> onTapMatch;
 
   @override
   Widget build(BuildContext context) {
@@ -99,6 +98,11 @@ class MatchListView extends StatelessWidget {
 }
 
 class MatchCard extends StatelessWidget {
+  final Pertandingan match;
+  final Map<String, String> pesertaMap;
+  final bool isLocked;
+  final VoidCallback onTap;
+
   const MatchCard({
     super.key,
     required this.match,
@@ -106,11 +110,6 @@ class MatchCard extends StatelessWidget {
     required this.isLocked,
     required this.onTap,
   });
-
-  final Pertandingan match;
-  final Map<String, String> pesertaMap;
-  final bool isLocked;
-  final VoidCallback onTap;
 
   bool _wins(
     int ownScore,

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../models/tournament.dart';
-import '../routes/app_routes.dart';
-import '../widgets/tournament_list.dart';
+import 'package:rivnet/models/tournament.dart';
+import 'package:rivnet/routes/app_routes.dart';
+import 'package:rivnet/widgets/tournament_list.dart';
 
 class HomeScreen extends StatefulWidget {
+  final List<Tournament> tournaments;
+  final ValueChanged<Tournament> onStart;
+  final ValueChanged<Tournament> onFinish;
+  final VoidCallback? onRefresh;
+
   const HomeScreen({
     super.key,
     required this.tournaments,
@@ -13,11 +17,6 @@ class HomeScreen extends StatefulWidget {
     required this.onFinish,
     this.onRefresh,
   });
-
-  final List<Tournament> tournaments;
-  final ValueChanged<Tournament> onStart;
-  final ValueChanged<Tournament> onFinish;
-  final VoidCallback? onRefresh;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -62,7 +61,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     label: Text(filter),
                     selected: _selectedFilter == filter,
                     onSelected: (_) {
-                      setState(() => _selectedFilter = filter);
+                      setState(() {
+                        _selectedFilter = filter;
+                      });
                     },
                   ),
               ],

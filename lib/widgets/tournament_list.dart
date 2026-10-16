@@ -1,15 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../models/tournament.dart';
+import 'package:rivnet/models/tournament.dart';
 
 class TournamentCardGrid extends StatelessWidget {
-  const TournamentCardGrid({
-    super.key,
-    required this.tournaments,
-    required this.padding,
-    required this.itemBuilder,
-  });
-
   final List<Tournament> tournaments;
   final EdgeInsets padding;
   final Widget Function(
@@ -18,6 +10,13 @@ class TournamentCardGrid extends StatelessWidget {
     double iconSize,
   )
   itemBuilder;
+
+  const TournamentCardGrid({
+    super.key,
+    required this.tournaments,
+    required this.padding,
+    required this.itemBuilder,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +62,13 @@ class TournamentCardGrid extends StatelessWidget {
 }
 
 class TournamentSummaryCard extends StatelessWidget {
+  final Tournament tournament;
+  final double iconSize;
+  final VoidCallback onTap;
+  final VoidCallback? onStart;
+  final VoidCallback? onFinish;
+  final bool isFinished;
+
   const TournamentSummaryCard({
     super.key,
     required this.tournament,
@@ -72,13 +78,6 @@ class TournamentSummaryCard extends StatelessWidget {
     this.onFinish,
     this.isFinished = false,
   });
-
-  final Tournament tournament;
-  final double iconSize;
-  final VoidCallback onTap;
-  final VoidCallback? onStart;
-  final VoidCallback? onFinish;
-  final bool isFinished;
 
   @override
   Widget build(BuildContext context) {
@@ -146,13 +145,13 @@ class TournamentSummaryCard extends StatelessWidget {
 }
 
 class _TournamentDetails extends StatelessWidget {
+  final Tournament tournament;
+  final bool isFinished;
+
   const _TournamentDetails({
     required this.tournament,
     required this.isFinished,
   });
-
-  final Tournament tournament;
-  final bool isFinished;
 
   @override
   Widget build(BuildContext context) {
@@ -189,16 +188,16 @@ class _TournamentDetails extends StatelessWidget {
 }
 
 class TournamentEmptyState extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+
   const TournamentEmptyState({
     super.key,
     required this.icon,
     required this.title,
     required this.message,
   });
-
-  final IconData icon;
-  final String title;
-  final String message;
 
   @override
   Widget build(BuildContext context) {

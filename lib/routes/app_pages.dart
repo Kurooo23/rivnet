@@ -1,11 +1,10 @@
 import 'package:get/get.dart';
-
-import '../models/tournament.dart';
-import '../screens/create_tournament_screen.dart';
-import '../screens/detail_tournament_screen.dart';
-import '../screens/edit_tournament_screen.dart';
-import '../screens/main_shell.dart';
-import 'app_routes.dart';
+import 'package:rivnet/models/tournament.dart';
+import 'package:rivnet/screens/create_tournament_screen.dart';
+import 'package:rivnet/screens/detail_tournament_screen.dart';
+import 'package:rivnet/screens/edit_tournament_screen.dart';
+import 'package:rivnet/screens/main_shell.dart';
+import 'package:rivnet/routes/app_routes.dart';
 
 class AppPages {
   AppPages._();

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import 'section_card.dart';
+import 'package:rivnet/widgets/section_card.dart';
 
 class KuotaSection extends StatelessWidget {
+  final int kuota;
+  final String format;
+  final bool isElimination;
+  final List<int> options;
+  final ValueChanged<int> onChanged;
+  final VoidCallback onCustom;
+
   const KuotaSection({
     super.key,
     required this.kuota,
@@ -13,13 +19,6 @@ class KuotaSection extends StatelessWidget {
     required this.onChanged,
     required this.onCustom,
   });
-
-  final int kuota;
-  final String format;
-  final bool isElimination;
-  final List<int> options;
-  final ValueChanged<int> onChanged;
-  final VoidCallback onCustom;
 
   @override
   Widget build(BuildContext context) {
@@ -125,9 +124,9 @@ class KuotaSection extends StatelessWidget {
 }
 
 class KuotaDialog extends StatefulWidget {
-  const KuotaDialog({super.key, required this.initial});
-
   final int initial;
+
+  const KuotaDialog({super.key, required this.initial});
 
   @override
   State<KuotaDialog> createState() => _KuotaDialogState();
@@ -146,7 +145,9 @@ class _KuotaDialogState extends State<KuotaDialog> {
   void _apply() {
     final value = int.tryParse(_controller.text.trim());
     if (value == null || value < 2) {
-      setState(() => _error = 'Minimal 2 peserta');
+      setState(() {
+        _error = 'Minimal 2 peserta';
+      });
       return;
     }
     Get.back(result: value);

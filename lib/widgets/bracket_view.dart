@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-
-import '../models/match.dart';
+import 'package:rivnet/models/match.dart';
 
 String roundName(String babak) =>
     babak.replaceFirst(RegExp(r'^Leg [12] - '), '');
 
 class BracketView extends StatelessWidget {
+  final List<Pertandingan> matches;
+  final Map<String, String> pesertaMap;
+  final int legCount;
+  final double columnWidth;
+  final double connectorWidth;
+  final double sidePadding;
+  final ValueChanged<Pertandingan> onTapMatch;
+
   const BracketView({
     super.key,
     required this.matches,
@@ -16,14 +23,6 @@ class BracketView extends StatelessWidget {
     required this.sidePadding,
     required this.onTapMatch,
   });
-
-  final List<Pertandingan> matches;
-  final Map<String, String> pesertaMap;
-  final int legCount;
-  final double columnWidth;
-  final double connectorWidth;
-  final double sidePadding;
-  final ValueChanged<Pertandingan> onTapMatch;
 
   @override
   Widget build(BuildContext context) {
@@ -128,16 +127,16 @@ class BracketView extends StatelessWidget {
 }
 
 class BracketTie extends StatelessWidget {
+  final List<Pertandingan> legs;
+  final Map<String, String> pesertaMap;
+  final ValueChanged<Pertandingan> onTap;
+
   const BracketTie({
     super.key,
     required this.legs,
     required this.pesertaMap,
     required this.onTap,
   });
-
-  final List<Pertandingan> legs;
-  final Map<String, String> pesertaMap;
-  final ValueChanged<Pertandingan> onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -253,6 +252,12 @@ class BracketTie extends StatelessWidget {
 }
 
 class ScoreLine extends StatelessWidget {
+  final String name;
+  final String score;
+  final bool isWinner;
+  final bool isFinished;
+  final bool compact;
+
   const ScoreLine({
     super.key,
     required this.name,
@@ -261,12 +266,6 @@ class ScoreLine extends StatelessWidget {
     this.isFinished = false,
     this.compact = false,
   });
-
-  final String name;
-  final String score;
-  final bool isWinner;
-  final bool isFinished;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {

@@ -1,20 +1,18 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../database/database_helper.dart';
-import '../models/klasemen_item.dart';
-import '../models/match.dart';
-import '../models/tournament.dart';
-import '../routes/app_routes.dart';
-import '../widgets/bracket_view.dart';
-import '../widgets/detail_header_card.dart';
-import '../widgets/detail_tab_bar.dart';
-import '../widgets/input_skor_dialog.dart';
-import '../widgets/klasemen_view.dart';
-import '../widgets/match_list_view.dart';
-import '../widgets/page_layout.dart';
+import 'package:rivnet/database/database_helper.dart';
+import 'package:rivnet/models/klasemen_item.dart';
+import 'package:rivnet/models/match.dart';
+import 'package:rivnet/models/tournament.dart';
+import 'package:rivnet/routes/app_routes.dart';
+import 'package:rivnet/widgets/bracket_view.dart';
+import 'package:rivnet/widgets/detail_header_card.dart';
+import 'package:rivnet/widgets/detail_tab_bar.dart';
+import 'package:rivnet/widgets/input_skor_dialog.dart';
+import 'package:rivnet/widgets/klasemen_view.dart';
+import 'package:rivnet/widgets/match_list_view.dart';
+import 'package:rivnet/widgets/page_layout.dart';
 
 const _bgDark = Color(0xFF0F172A);
 const _bgCard = Color(0xFF1E293B);
@@ -26,16 +24,17 @@ const _warningColor = Color(0xFFF59E0B);
 const _errorColor = Color(0xFFEF4444);
 
 class _PesertaData {
-  _PesertaData({required this.id, required this.nama, required this.urutan});
   final String id;
   final String nama;
   final int urutan;
+
+  _PesertaData({required this.id, required this.nama, required this.urutan});
 }
 
 class DetailTournamentScreen extends StatefulWidget {
-  const DetailTournamentScreen({super.key, required this.tournament});
-
   final Tournament tournament;
+
+  const DetailTournamentScreen({super.key, required this.tournament});
 
   @override
   State<DetailTournamentScreen> createState() => _DetailTournamentScreenState();
@@ -119,7 +118,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     }
   }
 
-  /// Meneruskan pemenang semifinal ke final dan yang kalah ke perebutan juara 3.
+  // Meneruskan pemenang semifinal ke final dan yang kalah ke perebutan juara 3.
   Future<void> _propagateBracket(List<Pertandingan> matches) async {
     if (!_isKnockout) return;
 
@@ -1006,10 +1005,10 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
 }
 
 class _PesertaTile extends StatelessWidget {
-  const _PesertaTile({required this.number, required this.nama});
-
   final int number;
   final String nama;
+
+  const _PesertaTile({required this.number, required this.nama});
 
   @override
   Widget build(BuildContext context) {

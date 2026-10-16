@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
-
-import '../models/klasemen_item.dart';
+import 'package:rivnet/models/klasemen_item.dart';
 
 class KlasemenView extends StatelessWidget {
+  final List<KlasemenItem> klasemen;
+  final double sidePadding;
+
   const KlasemenView({
     super.key,
     required this.klasemen,
     required this.sidePadding,
   });
-
-  final List<KlasemenItem> klasemen;
-  final double sidePadding;
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +42,6 @@ class KlasemenView extends StatelessWidget {
 }
 
 class KlasemenTable extends StatelessWidget {
-  const KlasemenTable({
-    super.key,
-    required this.klasemen,
-    required this.unit,
-    required this.showGoals,
-  });
-
   final List<KlasemenItem> klasemen;
   final double unit;
   final bool showGoals;
@@ -61,6 +53,14 @@ class KlasemenTable extends StatelessWidget {
   static const successColor = Color(0xFF22C55E);
   static const warningColor = Color(0xFFF59E0B);
   static const errorColor = Color(0xFFEF4444);
+
+  const KlasemenTable({
+    super.key,
+    required this.klasemen,
+    required this.unit,
+    required this.showGoals,
+  });
+
   static const primaryGradient = LinearGradient(
     colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
   );
@@ -252,9 +252,9 @@ class KlasemenTable extends StatelessWidget {
 }
 
 class RankBadge extends StatelessWidget {
-  const RankBadge({super.key, required this.rank});
-
   final int rank;
+
+  const RankBadge({super.key, required this.rank});
 
   @override
   Widget build(BuildContext context) {

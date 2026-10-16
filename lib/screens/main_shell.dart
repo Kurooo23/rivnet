@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../database/database_helper.dart';
-import '../models/tournament.dart';
-import '../routes/app_routes.dart';
-import 'history_screen.dart';
-import 'home_screen.dart';
+import 'package:rivnet/database/database_helper.dart';
+import 'package:rivnet/models/tournament.dart';
+import 'package:rivnet/routes/app_routes.dart';
+import 'package:rivnet/screens/history_screen.dart';
+import 'package:rivnet/screens/home_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -46,11 +45,13 @@ class _MainShellState extends State<MainShell> {
   }
 
   Future<void> _startTournament(Tournament tournament) async {
-    await _database.updateStatus(tournament.id!, 'Berlangsung');
+    tournament.status = 'Berlangsung';
+    await _database.updateStatus(tournament.id!, tournament.status);
     await _loadTournaments();
   }
 
   Future<void> _finishTournament(Tournament tournament) async {
+    tournament.isFinished = true;
     await _database.markFinished(tournament.id!);
     await _loadTournaments();
 
@@ -61,7 +62,9 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _selectTab(int index) {
-    setState(() => _selectedTab = index);
+    setState(() {
+      _selectedTab = index;
+    });
   }
 
   @override

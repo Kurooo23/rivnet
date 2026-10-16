@@ -1,4 +1,4 @@
-/// Nama route yang digunakan untuk navigasi GetX.
+// Nama route yang digunakan untuk navigasi GetX.
 abstract class AppRoutes {
   static const home = '/';
   static const create = '/create';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../models/match.dart';
+import 'package:rivnet/models/match.dart';
 
 const _bgDarkSecondary = Color(0xFF182234);
 const _bgCard = Color(0xFF1E293B);
@@ -14,17 +13,6 @@ const _warningColor = Color(0xFFF59E0B);
 const _errorColor = Color(0xFFEF4444);
 
 class InputSkorDialog extends StatefulWidget {
-  const InputSkorDialog({
-    super.key,
-    required this.match,
-    required this.pesertaMap,
-    this.isKnockout = false,
-    this.isTwoLeg = false,
-    this.previousLegScore1,
-    this.previousLegScore2,
-    required this.onSaved,
-  });
-
   final Pertandingan match;
   final Map<String, String> pesertaMap;
   final bool isKnockout;
@@ -39,6 +27,17 @@ class InputSkorDialog extends StatefulWidget {
     int? penalti2,
   )
   onSaved;
+
+  const InputSkorDialog({
+    super.key,
+    required this.match,
+    required this.pesertaMap,
+    this.isKnockout = false,
+    this.isTwoLeg = false,
+    this.previousLegScore1,
+    this.previousLegScore2,
+    required this.onSaved,
+  });
 
   @override
   State<InputSkorDialog> createState() => _InputSkorDialogState();
@@ -66,7 +65,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
     super.dispose();
   }
 
-  /// Adu penalti hanya berlaku untuk hasil imbang pada babak gugur.
+  // Adu penalti hanya berlaku untuk hasil imbang pada babak gugur.
   bool get _needsPenaltyShootout {
     if (!widget.isKnockout || _status != 'Selesai') return false;
 
@@ -113,7 +112,9 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
       }
     }
 
-    setState(() => _isSaving = true);
+    setState(() {
+      _isSaving = true;
+    });
     try {
       await widget.onSaved(
         widget.match,
@@ -134,7 +135,11 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -142,7 +147,9 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
     final selected = _status == status;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _status = status),
+        onTap: () => setState(() {
+          _status = status;
+        }),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
@@ -202,9 +209,15 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
       score: '$_score1',
       scoreFontSize: scoreFontSize,
       isLeading: isP1Leading,
-      onIncrement: () => setState(() => _score1++),
+      onIncrement: () => setState(() {
+        _score1++;
+      }),
       onDecrement: () {
-        if (_score1 > 0) setState(() => _score1--);
+        if (_score1 > 0) {
+          setState(() {
+            _score1--;
+          });
+        }
       },
     );
 
@@ -213,9 +226,15 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
       score: '$_score2',
       scoreFontSize: scoreFontSize,
       isLeading: isP2Leading,
-      onIncrement: () => setState(() => _score2++),
+      onIncrement: () => setState(() {
+        _score2++;
+      }),
       onDecrement: () {
-        if (_score2 > 0) setState(() => _score2--);
+        if (_score2 > 0) {
+          setState(() {
+            _score2--;
+          });
+        }
       },
     );
 
@@ -367,9 +386,9 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
 }
 
 class _VsLabel extends StatelessWidget {
-  const _VsLabel({required this.vertical});
-
   final bool vertical;
+
+  const _VsLabel({required this.vertical});
 
   @override
   Widget build(BuildContext context) {
@@ -391,6 +410,13 @@ class _VsLabel extends StatelessWidget {
 }
 
 class _ScoreCard extends StatelessWidget {
+  final String name;
+  final String score;
+  final double scoreFontSize;
+  final bool isLeading;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
+
   const _ScoreCard({
     required this.name,
     required this.score,
@@ -399,13 +425,6 @@ class _ScoreCard extends StatelessWidget {
     required this.onIncrement,
     required this.onDecrement,
   });
-
-  final String name;
-  final String score;
-  final double scoreFontSize;
-  final bool isLeading;
-  final VoidCallback onIncrement;
-  final VoidCallback onDecrement;
 
   @override
   Widget build(BuildContext context) {
@@ -475,10 +494,10 @@ class _ScoreCard extends StatelessWidget {
 }
 
 class _PenaltyField extends StatelessWidget {
-  const _PenaltyField({required this.controller, required this.label});
-
   final TextEditingController controller;
   final String label;
+
+  const _PenaltyField({required this.controller, required this.label});
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-
-import '../models/tournament.dart';
+import 'package:rivnet/models/tournament.dart';
 
 class DetailHeaderCard extends StatelessWidget {
+  final Tournament turnamen;
+  final int selesaiCount;
+  final int totalCount;
+  final VoidCallback onAkhiri;
+
   const DetailHeaderCard({
     super.key,
     required this.turnamen,
@@ -10,11 +14,6 @@ class DetailHeaderCard extends StatelessWidget {
     required this.totalCount,
     required this.onAkhiri,
   });
-
-  final Tournament turnamen;
-  final int selesaiCount;
-  final int totalCount;
-  final VoidCallback onAkhiri;
 
   @override
   Widget build(BuildContext context) {
@@ -232,15 +231,15 @@ class DetailHeaderCard extends StatelessWidget {
 }
 
 class _TagChip extends StatelessWidget {
+  final String text;
+  final Color background;
+  final Color color;
+
   const _TagChip({
     required this.text,
     required this.background,
     required this.color,
   });
-
-  final String text;
-  final Color background;
-  final Color color;
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Ukuran layar dan jarak yang dipakai bersama oleh halaman-halaman aplikasi.
+// Ukuran layar dan jarak yang dipakai bersama oleh halaman-halaman aplikasi.
 class PageLayout {
   PageLayout._({
     required this.width,

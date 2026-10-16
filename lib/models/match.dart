@@ -1,20 +1,4 @@
 class Pertandingan {
-  Pertandingan({
-    required this.id,
-    required this.idTurnamen,
-    this.idPeserta1,
-    this.idPeserta2,
-    required this.babak,
-    this.leg = 1,
-    this._skor1 = 0,
-    int skor2 = 0,
-    this._penalti1,
-    this._penalti2,
-    this._status = 'Belum Mulai',
-    this.urutan = 0,
-    this.nextId,
-  }) : _skor2 = skor2;
-
   final String id;
   final String idTurnamen;
   final String? idPeserta1;
@@ -28,6 +12,22 @@ class Pertandingan {
   String _status;
   final int urutan;
   final String? nextId;
+
+  Pertandingan({
+    required this.id,
+    required this.idTurnamen,
+    this.idPeserta1,
+    this.idPeserta2,
+    required this.babak,
+    this.leg = 1,
+    this._skor1 = 0,
+    this._skor2 = 0,
+    this._penalti1,
+    this._penalti2,
+    this._status = 'Belum Mulai',
+    this.urutan = 0,
+    this.nextId,
+  });
 
   int get skor1 => _skor1;
   int get skor2 => _skor2;
