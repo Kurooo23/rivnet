@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rivnet/theme/app_colors.dart';
 import 'package:rivnet/models/match.dart';
 
 String roundName(String babak) =>
@@ -26,15 +27,11 @@ class BracketView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textPrimary = Colors.white;
-    const textSecondary = Color(0xFF94A3B8);
-    const textMuted = Color(0xFF64748B);
-
     if (matches.isEmpty) {
       return const Center(
         child: Text(
           'Belum ada pertandingan',
-          style: TextStyle(color: textSecondary),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
       );
     }
@@ -81,7 +78,7 @@ class BracketView extends StatelessWidget {
                       child: Text(
                         round.key,
                         style: const TextStyle(
-                          color: textPrimary,
+                          color: AppColors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                         ),
@@ -95,7 +92,7 @@ class BracketView extends StatelessWidget {
                         child: Text(
                           'Perebutan Juara 3',
                           style: TextStyle(
-                            color: textPrimary,
+                            color: AppColors.textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
@@ -113,7 +110,7 @@ class BracketView extends StatelessWidget {
                     padding: EdgeInsets.only(top: 64),
                     child: Icon(
                       Icons.arrow_forward_rounded,
-                      color: textMuted,
+                      color: AppColors.textMuted,
                       size: 20,
                     ),
                   ),
@@ -140,10 +137,6 @@ class BracketTie extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bgCard = Color(0xFF1E293B);
-    const textMuted = Color(0xFF64748B);
-    const warningColor = Color(0xFFF59E0B);
-
     final firstLeg = legs.first;
     final homeParticipantId = firstLeg.idPeserta1;
     final awayParticipantId = firstLeg.idPeserta2;
@@ -197,7 +190,7 @@ class BracketTie extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: bgCard,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
@@ -227,7 +220,10 @@ class BracketTie extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     legs.map((leg) => '${leg.skor1}-${leg.skor2}').join(' · '),
-                    style: const TextStyle(color: textMuted, fontSize: 10),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 10,
+                    ),
                   ),
                 ],
                 for (final leg in legs)
@@ -237,7 +233,7 @@ class BracketTie extends StatelessWidget {
                       child: Text(
                         'Penalti ${leg.penalti1}-${leg.penalti2}',
                         style: const TextStyle(
-                          color: warningColor,
+                          color: AppColors.warning,
                           fontSize: 10,
                         ),
                       ),
@@ -269,14 +265,10 @@ class ScoreLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const gold = Color(0xFFFFD700);
-    const textPrimary = Colors.white;
-    const textSecondary = Color(0xFF94A3B8);
-
     final scoreText = Text(
       score,
       style: TextStyle(
-        color: isWinner ? Colors.white : textSecondary,
+        color: isWinner ? Colors.white : AppColors.textSecondary,
         fontSize: 13,
         fontWeight: FontWeight.bold,
       ),
@@ -289,7 +281,7 @@ class ScoreLine extends StatelessWidget {
             padding: EdgeInsets.only(right: compact ? 5 : 6),
             child: Icon(
               Icons.emoji_events_rounded,
-              color: gold,
+              color: AppColors.gold,
               size: compact ? 14 : 16,
             ),
           ),
@@ -300,8 +292,10 @@ class ScoreLine extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: isWinner
-                  ? gold
-                  : (isFinished ? textSecondary : textPrimary),
+                  ? AppColors.gold
+                  : (isFinished
+                        ? AppColors.textSecondary
+                        : AppColors.textPrimary),
               fontSize: compact ? 12 : 13,
               fontWeight: isWinner ? FontWeight.bold : FontWeight.w600,
             ),
@@ -315,12 +309,12 @@ class ScoreLine extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: isWinner
-                  ? const Color(0xFF6366F1).withValues(alpha: 0.35)
-                  : const Color(0xFF0F172A),
+                  ? AppColors.primary.withValues(alpha: 0.35)
+                  : AppColors.background,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: isWinner
-                    ? const Color(0xFF6366F1)
+                    ? AppColors.primary
                     : Colors.white.withValues(alpha: 0.05),
               ),
             ),

@@ -61,7 +61,6 @@ class _PesertaField extends StatelessWidget {
       controller: controller,
       decoration: InputDecoration(
         hintText: 'Nama Tim / Pemain $number',
-        border: const OutlineInputBorder(),
         prefixIcon: Padding(
           padding: const EdgeInsets.all(12),
           child: CircleAvatar(

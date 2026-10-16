@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rivnet/theme/app_colors.dart';
 import 'package:rivnet/models/match.dart';
 import 'package:rivnet/widgets/bracket_view.dart';
 
@@ -24,16 +25,11 @@ class MatchListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const textPrimary = Colors.white;
-    const textSecondary = Color(0xFF94A3B8);
-    const textMuted = Color(0xFF64748B);
-    const warningColor = Color(0xFFF59E0B);
-
     if (grouped.isEmpty) {
       return const Center(
         child: Text(
           'Belum ada pertandingan',
-          style: TextStyle(color: textSecondary),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
       );
     }
@@ -55,13 +51,13 @@ class MatchListView extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(5),
                     decoration: BoxDecoration(
-                      color: warningColor.withValues(alpha: 0.15),
+                      color: AppColors.warning.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Icon(
                       Icons.sports_soccer_rounded,
                       size: 16,
-                      color: warningColor,
+                      color: AppColors.warning,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -70,7 +66,7 @@ class MatchListView extends StatelessWidget {
                       round.key,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        color: textPrimary,
+                        color: AppColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
@@ -78,7 +74,10 @@ class MatchListView extends StatelessWidget {
                   ),
                   Text(
                     '${round.value.length} Laga',
-                    style: const TextStyle(color: textMuted, fontSize: 11),
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                    ),
                   ),
                 ],
               ),
@@ -127,11 +126,6 @@ class MatchCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bgCard = Color(0xFF1E293B);
-    const textMuted = Color(0xFF64748B);
-    const successColor = Color(0xFF22C55E);
-    const warningColor = Color(0xFFF59E0B);
-
     final isFinished = match.status == 'Selesai';
     final firstParticipant = match.idPeserta1 != null
         ? (pesertaMap[match.idPeserta1] ?? 'TBD')
@@ -140,23 +134,23 @@ class MatchCard extends StatelessWidget {
         ? (pesertaMap[match.idPeserta2] ?? 'TBD')
         : 'TBD';
 
-    Color badgeColor = textMuted;
+    Color badgeColor = AppColors.textMuted;
     if (isFinished) {
-      badgeColor = successColor;
+      badgeColor = AppColors.success;
     } else if (match.idPeserta1 != null && match.idPeserta2 != null) {
-      badgeColor = warningColor;
+      badgeColor = AppColors.warning;
     }
 
     final Color borderColor = isLocked
         ? Colors.white.withValues(alpha: 0.04)
         : (isFinished
-              ? successColor.withValues(alpha: 0.2)
+              ? AppColors.success.withValues(alpha: 0.2)
               : Colors.white.withValues(alpha: 0.06));
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: bgCard,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: borderColor),
         boxShadow: [
@@ -182,7 +176,7 @@ class MatchCard extends StatelessWidget {
                       child: Text(
                         'Laga #${match.urutan}',
                         style: const TextStyle(
-                          color: textMuted,
+                          color: AppColors.textMuted,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                         ),
@@ -210,7 +204,7 @@ class MatchCard extends StatelessWidget {
                     Icon(
                       isLocked ? Icons.lock_rounded : Icons.edit_note_rounded,
                       size: isLocked ? 14 : 16,
-                      color: isLocked ? textMuted : warningColor,
+                      color: isLocked ? AppColors.textMuted : AppColors.warning,
                     ),
                   ],
                 ),
@@ -246,7 +240,7 @@ class MatchCard extends StatelessWidget {
                   Text(
                     'Adu penalti ${match.penalti1}-${match.penalti2}',
                     style: const TextStyle(
-                      color: warningColor,
+                      color: AppColors.warning,
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                     ),

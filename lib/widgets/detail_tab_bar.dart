@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rivnet/theme/app_colors.dart';
 
 class DetailTabBar extends StatelessWidget {
   final TabController controller;
@@ -30,16 +31,10 @@ class DetailTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const bgCard = Color(0xFF1E293B);
-    const textSecondary = Color(0xFF94A3B8);
-    const primaryGradient = LinearGradient(
-      colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-    );
-
     return Container(
       height: 44,
       decoration: BoxDecoration(
-        color: bgCard,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
@@ -48,18 +43,18 @@ class DetailTabBar extends StatelessWidget {
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         indicator: BoxDecoration(
-          gradient: primaryGradient,
+          gradient: AppColors.primaryGradient,
           borderRadius: BorderRadius.circular(12),
         ),
         labelColor: Colors.white,
-        unselectedLabelColor: textSecondary,
+        unselectedLabelColor: AppColors.textSecondary,
         labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         tabs: [
           isKnockout
               ? _buildTab(Icons.account_tree_rounded, 'Bagan')
               : _buildTab(Icons.leaderboard_rounded, 'Klasemen'),
           _buildTab(Icons.sports_esports_rounded, 'Laga ($matchCount)'),
-          _buildTab(Icons.groups_rounded, 'Peserta ($pesertaCount)'),
+          _buildTab(Icons.groups_rounded, 'Peserta'),
         ],
       ),
     );

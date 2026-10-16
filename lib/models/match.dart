@@ -1,8 +1,8 @@
 class Pertandingan {
   final String id;
   final String idTurnamen;
-  final String? idPeserta1;
-  final String? idPeserta2;
+  String? idPeserta1;
+  String? idPeserta2;
   final String babak;
   final int leg;
   int _skor1;

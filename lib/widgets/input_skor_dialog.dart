@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:rivnet/theme/app_colors.dart';
 import 'package:get/get.dart';
 import 'package:rivnet/models/match.dart';
-
-const _bgDarkSecondary = Color(0xFF182234);
-const _bgCard = Color(0xFF1E293B);
-const _textPrimary = Colors.white;
-const _textSecondary = Color(0xFF94A3B8);
-const _textMuted = Color(0xFF64748B);
-const _secondaryColor = Color(0xFF38BDF8);
-const _successColor = Color(0xFF22C55E);
-const _warningColor = Color(0xFFF59E0B);
-const _errorColor = Color(0xFFEF4444);
 
 class InputSkorDialog extends StatefulWidget {
   final Pertandingan match;
@@ -96,7 +87,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
             content: Text(
               'Skor imbang pada babak gugur wajib diisi adu penalti.',
             ),
-            backgroundColor: _errorColor,
+            backgroundColor: AppColors.error,
           ),
         );
         return;
@@ -105,7 +96,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Adu penalti tidak boleh imbang.'),
-            backgroundColor: _errorColor,
+            backgroundColor: AppColors.error,
           ),
         );
         return;
@@ -130,7 +121,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal menyimpan skor: $e'),
-            backgroundColor: _errorColor,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -154,18 +145,18 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: selected
-                ? const Color(0xFF6366F1).withValues(alpha: 0.2)
-                : _bgCard,
+                ? AppColors.primary.withValues(alpha: 0.2)
+                : AppColors.card,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: selected ? const Color(0xFF6366F1) : Colors.white10,
+              color: selected ? AppColors.primary : Colors.white10,
             ),
           ),
           child: Text(
             status,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: selected ? Colors.white : _textSecondary,
+              color: selected ? Colors.white : AppColors.textSecondary,
               fontWeight: FontWeight.bold,
               fontSize: 13,
             ),
@@ -239,7 +230,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
     );
 
     return Dialog(
-      backgroundColor: _bgDarkSecondary,
+      backgroundColor: AppColors.backgroundAlt,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       insetPadding: EdgeInsets.symmetric(
         horizontal: screen.width * 0.05,
@@ -257,7 +248,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
                 children: [
                   const Icon(
                     Icons.sports_score_rounded,
-                    color: _secondaryColor,
+                    color: AppColors.secondary,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -266,7 +257,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: _textPrimary,
+                        color: AppColors.textPrimary,
                         fontSize: screen.width < 360 ? 15 : 17,
                         fontWeight: FontWeight.bold,
                       ),
@@ -275,7 +266,10 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
                   IconButton(
                     onPressed: () => Get.back(),
                     tooltip: 'Tutup',
-                    icon: const Icon(Icons.close_rounded, color: _textMuted),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: AppColors.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -299,7 +293,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
               const Text(
                 'Status Pertandingan',
                 style: TextStyle(
-                  color: _textSecondary,
+                  color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -318,7 +312,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
                 const Text(
                   'Agregat Seri — Skor Adu Penalti Wajib Diisi:',
                   style: TextStyle(
-                    color: _warningColor,
+                    color: AppColors.warning,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -337,7 +331,7 @@ class _InputSkorDialogState extends State<InputSkorDialog> {
                       child: Text(
                         '–',
                         style: TextStyle(
-                          color: _textMuted,
+                          color: AppColors.textMuted,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -400,7 +394,7 @@ class _VsLabel extends StatelessWidget {
         'VS',
         textAlign: TextAlign.center,
         style: TextStyle(
-          color: _textMuted,
+          color: AppColors.textMuted,
           fontWeight: FontWeight.bold,
           fontSize: 16,
         ),
@@ -431,10 +425,10 @@ class _ScoreCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: _bgCard,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isLeading ? _successColor : Colors.white10,
+          color: isLeading ? AppColors.success : Colors.white10,
           width: isLeading ? 1.5 : 1,
         ),
       ),
@@ -446,7 +440,7 @@ class _ScoreCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: isLeading ? _successColor : _textPrimary,
+              color: isLeading ? AppColors.success : AppColors.textPrimary,
               fontWeight: FontWeight.w600,
               fontSize: 13,
             ),
@@ -455,7 +449,7 @@ class _ScoreCard extends StatelessWidget {
           Text(
             score,
             style: TextStyle(
-              color: _textPrimary,
+              color: AppColors.textPrimary,
               fontSize: scoreFontSize,
               fontWeight: FontWeight.bold,
             ),
@@ -469,7 +463,7 @@ class _ScoreCard extends StatelessWidget {
                   tooltip: 'Kurangi gol',
                   icon: const Icon(
                     Icons.remove_circle_outline,
-                    color: _textMuted,
+                    color: AppColors.textMuted,
                   ),
                   iconSize: 26,
                 ),
@@ -480,7 +474,7 @@ class _ScoreCard extends StatelessWidget {
                   tooltip: 'Tambah gol',
                   icon: const Icon(
                     Icons.add_circle_outline,
-                    color: _secondaryColor,
+                    color: AppColors.secondary,
                   ),
                   iconSize: 26,
                 ),
@@ -504,14 +498,14 @@ class _PenaltyField extends StatelessWidget {
     return TextField(
       controller: controller,
       keyboardType: TextInputType.number,
-      style: const TextStyle(color: _textPrimary),
+      style: const TextStyle(color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: _textSecondary),
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
         hintText: 'Penalti',
-        hintStyle: const TextStyle(color: _textMuted),
+        hintStyle: const TextStyle(color: AppColors.textMuted),
         filled: true,
-        fillColor: _bgCard,
+        fillColor: AppColors.card,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),

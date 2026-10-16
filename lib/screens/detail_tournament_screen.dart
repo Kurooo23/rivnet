@@ -1,5 +1,7 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:rivnet/theme/app_colors.dart';
 import 'package:get/get.dart';
 import 'package:rivnet/database/database_helper.dart';
 import 'package:rivnet/models/klasemen_item.dart';
@@ -14,21 +16,18 @@ import 'package:rivnet/widgets/klasemen_view.dart';
 import 'package:rivnet/widgets/match_list_view.dart';
 import 'package:rivnet/widgets/page_layout.dart';
 
-const _bgDark = Color(0xFF0F172A);
-const _bgCard = Color(0xFF1E293B);
-const _textPrimary = Colors.white;
-const _textSecondary = Color(0xFF94A3B8);
-const _textMuted = Color(0xFF64748B);
-const _successColor = Color(0xFF22C55E);
-const _warningColor = Color(0xFFF59E0B);
-const _errorColor = Color(0xFFEF4444);
-
 class _PesertaData {
   final String id;
   final String nama;
   final int urutan;
+  final bool isWo;
 
-  _PesertaData({required this.id, required this.nama, required this.urutan});
+  _PesertaData({
+    required this.id,
+    required this.nama,
+    required this.urutan,
+    this.isWo = false,
+  });
 }
 
 class DetailTournamentScreen extends StatefulWidget {
@@ -88,16 +87,28 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
             id: row['id_peserta'] as String,
             nama: row['nama_peserta'] as String,
             urutan: row['urutan'] as int,
+            isWo: row['is_wo'] == 1,
           ),
       ];
 
-      final pesertaMap = {for (final p in pesertaList) p.id: p.nama};
+      final pesertaMap = {
+        for (final p in pesertaList) p.id: p.isWo ? '${p.nama} (WO)' : p.nama,
+      };
+      final woIds = {
+        for (final p in pesertaList)
+          if (p.isWo) p.id,
+      };
 
       var matches = await db.getMatches(_turnamen.id!);
 
       if (matches.isEmpty && pesertaList.length >= 2) {
         matches = await _generateAndSaveMatches(currentTournament, pesertaList);
-      } else if (matches.isNotEmpty) {
+      }
+
+      // dua kali: WO bisa mengubah pemenang, lalu peserta WO bisa
+      // terdorong ke laga perebutan juara 3 yang juga harus di-WO
+      for (var i = 0; i < 2; i++) {
+        await _applyWalkover(matches, woIds);
         await _propagateBracket(matches);
       }
 
@@ -118,251 +129,244 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     }
   }
 
-  // Meneruskan pemenang semifinal ke final dan yang kalah ke perebutan juara 3.
+  // Peserta yang dihapus kalah WO 3-0 di semua laganya.
+  Future<void> _applyWalkover(
+    List<Pertandingan> matches,
+    Set<String> woIds,
+  ) async {
+    if (woIds.isEmpty) return;
+    final db = DatabaseHelper.instance;
+
+    for (final match in matches) {
+      if (match.idPeserta1 == null || match.idPeserta2 == null) continue;
+      final p1Wo = woIds.contains(match.idPeserta1);
+      final p2Wo = woIds.contains(match.idPeserta2);
+      if (p1Wo == p2Wo) continue;
+
+      final skor1 = p1Wo ? 0 : 3;
+      final skor2 = p1Wo ? 3 : 0;
+      final alreadyWo =
+          match.status == 'Selesai' &&
+          match.skor1 == skor1 &&
+          match.skor2 == skor2 &&
+          match.penalti1 == null &&
+          match.penalti2 == null;
+      if (alreadyWo) continue;
+
+      await db.saveScore(match.id, skor1: skor1, skor2: skor2);
+      match.skor1 = skor1;
+      match.skor2 = skor2;
+      match.penalti1 = null;
+      match.penalti2 = null;
+      match.status = 'Selesai';
+    }
+  }
+
+  // peserta hanya boleh ditambah kalau belum ada laga yang dimainkan
+  bool get _canAddPeserta =>
+      !_turnamen.isFinished &&
+      _pertandinganList.every((m) => m.status != 'Selesai');
+
+  Future<String?> _showNamaDialog(String title, String initial) async {
+    var nama = initial;
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(title),
+        content: TextFormField(
+          initialValue: initial,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Nama Peserta'),
+          onChanged: (value) {
+            nama = value;
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, nama.trim()),
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isEmpty) {
+      _showSnack('Nama peserta tidak boleh kosong', color: AppColors.error);
+      return null;
+    }
+    return result;
+  }
+
+  Future<void> _tambahPeserta() async {
+    final aktif = _pesertaList.where((p) => !p.isWo).length;
+    final nama = await _showNamaDialog(
+      'Tambah Peserta',
+      'Peserta ${aktif + 1}',
+    );
+    if (nama == null) return;
+
+    await DatabaseHelper.instance.addPeserta(_turnamen.id!, nama);
+    if (!mounted) return;
+    _showSnack(
+      '$nama ditambahkan, jadwal dibuat ulang',
+      color: AppColors.success,
+    );
+    _loadTournamentData();
+  }
+
+  Future<void> _editPeserta(_PesertaData peserta) async {
+    final result = await _showNamaDialog('Edit Nama Peserta', peserta.nama);
+    if (result == null || result == peserta.nama) return;
+
+    await DatabaseHelper.instance.renamePeserta(peserta.id, result);
+    if (!mounted) return;
+    _showSnack('Nama peserta diubah', color: AppColors.success);
+    _loadTournamentData();
+  }
+
+  Future<void> _hapusPeserta(_PesertaData peserta) async {
+    final confirmed = await _showConfirmDialog(
+      icon: Icons.person_remove_rounded,
+      color: AppColors.error,
+      title: 'Hapus Peserta',
+      message:
+          'Hapus "${peserta.nama}" dari turnamen?\n\n'
+          'Semua laga peserta ini akan dianggap kalah WO 3-0.',
+      confirmLabel: 'Hapus',
+    );
+    if (!confirmed) return;
+
+    await DatabaseHelper.instance.setPesertaWo(peserta.id);
+    if (!mounted) return;
+    _showSnack('${peserta.nama} dihapus (WO)', color: AppColors.success);
+    _loadTournamentData();
+  }
+
+  // Mengisi peserta babak berikutnya dari hasil babak sebelumnya.
+  // Laga ke-i masuk ke laga ke-(i ~/ 2) babak berikutnya:
+  // i genap jadi tuan rumah, i ganjil jadi tamu.
   Future<void> _propagateBracket(List<Pertandingan> matches) async {
     if (!_isKnockout) return;
 
+    final legCount = _turnamen.jumlahLeg;
+    final sorted = [...matches]..sort((a, b) => a.urutan.compareTo(b.urutan));
+
+    final byRound = <String, List<Pertandingan>>{};
+    for (final match in sorted) {
+      byRound.putIfAbsent(roundName(match.babak), () => []).add(match);
+    }
+    final juara3 = byRound.remove('Perebutan Juara 3');
+
+    final rounds = [
+      for (final list in byRound.values) _splitTies(list, legCount),
+    ];
+
+    // menandai laga yang tidak punya peserta sama sekali (bagan tidak penuh)
+    var prevEmpty = <bool>[];
+
+    for (var r = 0; r < rounds.length; r++) {
+      final ties = rounds[r];
+      final isSemifinal = r == rounds.length - 2;
+      final emptyNow = <bool>[];
+
+      for (var i = 0; i < ties.length; i++) {
+        final legs = ties[i];
+        final home = legs.first.idPeserta1;
+        final away = legs.first.idPeserta2;
+
+        final homeEmpty = r == 0 ? home == null : prevEmpty[i * 2];
+        final awayEmpty = r == 0 ? away == null : prevEmpty[i * 2 + 1];
+        emptyNow.add(homeEmpty && awayEmpty);
+
+        String? winner;
+        String? loser;
+        if (home != null && awayEmpty) {
+          winner = home;
+        } else if (away != null && homeEmpty) {
+          winner = away;
+        } else if (home != null && away != null) {
+          winner = _tieWinner(legs);
+          if (winner != null) loser = winner == home ? away : home;
+        }
+
+        if (winner != null && r + 1 < rounds.length) {
+          await _setSlot(rounds[r + 1][i ~/ 2], i.isEven, winner);
+        }
+        if (loser != null && isSemifinal && juara3 != null) {
+          await _setSlot(_splitTies(juara3, legCount).first, i.isEven, loser);
+        }
+      }
+      prevEmpty = emptyNow;
+    }
+  }
+
+  List<List<Pertandingan>> _splitTies(List<Pertandingan> list, int legCount) {
+    return [
+      for (var i = 0; i < list.length; i += legCount)
+        list.skip(i).take(legCount).toList(),
+    ];
+  }
+
+  // Pemenang satu pertemuan (agregat semua leg, lalu adu penalti kalau imbang).
+  String? _tieWinner(List<Pertandingan> legs) {
+    if (legs.any((leg) => leg.status != 'Selesai')) return null;
+
+    final home = legs.first.idPeserta1;
+    final away = legs.first.idPeserta2;
+    var homeScore = 0;
+    var awayScore = 0;
+
+    for (final leg in legs) {
+      if (leg.idPeserta1 == home) {
+        homeScore += leg.skor1;
+        awayScore += leg.skor2;
+      } else {
+        homeScore += leg.skor2;
+        awayScore += leg.skor1;
+      }
+    }
+
+    if (homeScore > awayScore) return home;
+    if (awayScore > homeScore) return away;
+
+    final penaltyLeg = legs
+        .where((leg) => leg.penalti1 != null && leg.penalti2 != null)
+        .lastOrNull;
+    if (penaltyLeg == null) return null;
+
+    final homeIsP1 = penaltyLeg.idPeserta1 == home;
+    final homePenalty = homeIsP1 ? penaltyLeg.penalti1! : penaltyLeg.penalti2!;
+    final awayPenalty = homeIsP1 ? penaltyLeg.penalti2! : penaltyLeg.penalti1!;
+
+    if (homePenalty > awayPenalty) return home;
+    if (awayPenalty > homePenalty) return away;
+    return null;
+  }
+
+  // Leg 1: tuan rumah di slot 1. Leg 2: kebalikannya.
+  Future<void> _setSlot(
+    List<Pertandingan> legs,
+    bool isHome,
+    String pesertaId,
+  ) async {
     final db = DatabaseHelper.instance;
-    final database = await db.database;
-    final isTwoLeg = _turnamen.jumlahLeg == 2;
 
-    final juara3Matches =
-        matches.where((m) => roundName(m.babak) == 'Perebutan Juara 3').toList()
-          ..sort((a, b) => a.leg.compareTo(b.leg));
+    for (final leg in legs) {
+      final useSlot1 = leg.leg == 1 ? isHome : !isHome;
+      final current = useSlot1 ? leg.idPeserta1 : leg.idPeserta2;
+      if (current == pesertaId) continue;
 
-    final semies = matches
-        .where((m) => roundName(m.babak) == 'Semifinal')
-        .toList();
-
-    final List<List<Pertandingan>> semieTies = [];
-
-    if (isTwoLeg) {
-      final leg1s = semies.where((m) => m.leg == 1).toList();
-      for (final l1 in leg1s) {
-        final l2 = semies.firstWhereOrNull((m) => m.id == l1.nextId);
-        if (l2 != null) {
-          semieTies.add([l1, l2]);
-        } else {
-          semieTies.add([l1]);
-        }
+      if (useSlot1) {
+        leg.idPeserta1 = pesertaId;
+      } else {
+        leg.idPeserta2 = pesertaId;
       }
-    } else {
-      for (final m in semies) {
-        semieTies.add([m]);
-      }
-    }
-
-    for (final legs in semieTies) {
-      if (legs.every((leg) => leg.status == 'Selesai')) {
-        final firstLeg = legs.first;
-        final homeId = firstLeg.idPeserta1;
-        final awayId = firstLeg.idPeserta2;
-
-        if (homeId == null || awayId == null) continue;
-
-        var homeScore = 0;
-        var awayScore = 0;
-
-        for (final leg in legs) {
-          if (leg.idPeserta1 == homeId) {
-            homeScore += leg.skor1;
-            awayScore += leg.skor2;
-          } else if (leg.idPeserta1 == awayId) {
-            awayScore += leg.skor1;
-            homeScore += leg.skor2;
-          }
-        }
-
-        String? winnerId;
-        String? loserId;
-
-        if (homeScore > awayScore) {
-          winnerId = homeId;
-          loserId = awayId;
-        } else if (awayScore > homeScore) {
-          winnerId = awayId;
-          loserId = homeId;
-        } else {
-          final penaltyLeg = legs
-              .where((leg) => leg.penalti1 != null && leg.penalti2 != null)
-              .lastOrNull;
-          if (penaltyLeg != null) {
-            final homeIsP1 = penaltyLeg.idPeserta1 == homeId;
-            final homePenalty = homeIsP1
-                ? penaltyLeg.penalti1!
-                : penaltyLeg.penalti2!;
-            final awayPenalty = homeIsP1
-                ? penaltyLeg.penalti2!
-                : penaltyLeg.penalti1!;
-
-            if (homePenalty > awayPenalty) {
-              winnerId = homeId;
-              loserId = awayId;
-            } else if (awayPenalty > homePenalty) {
-              winnerId = awayId;
-              loserId = homeId;
-            }
-          }
-        }
-
-        final targetNextId = legs.last.nextId ?? firstLeg.nextId;
-
-        if (winnerId != null && targetNextId != null) {
-          final nextIndex = matches.indexWhere((m) => m.id == targetNextId);
-          if (nextIndex != -1) {
-            final nextMatch = matches[nextIndex];
-            if (nextMatch.idPeserta1 == null) {
-              await database.update(
-                'pertandingan',
-                {'id_peserta_1': winnerId},
-                where: 'id_pertandingan = ?',
-                whereArgs: [nextMatch.id],
-              );
-            } else if (nextMatch.idPeserta2 == null &&
-                nextMatch.idPeserta1 != winnerId) {
-              await database.update(
-                'pertandingan',
-                {'id_peserta_2': winnerId},
-                where: 'id_pertandingan = ?',
-                whereArgs: [nextMatch.id],
-              );
-            }
-          }
-        }
-
-        if (loserId != null && juara3Matches.isNotEmpty) {
-          final j1 = juara3Matches.first;
-          final j2 = juara3Matches.length > 1 ? juara3Matches[1] : null;
-
-          if (j1.idPeserta1 == null) {
-            await database.update(
-              'pertandingan',
-              {'id_peserta_1': loserId},
-              where: 'id_pertandingan = ?',
-              whereArgs: [j1.id],
-            );
-            if (j2 != null) {
-              await database.update(
-                'pertandingan',
-                {'id_peserta_2': loserId},
-                where: 'id_pertandingan = ?',
-                whereArgs: [j2.id],
-              );
-            }
-          } else if (j1.idPeserta2 == null && j1.idPeserta1 != loserId) {
-            await database.update(
-              'pertandingan',
-              {'id_peserta_2': loserId},
-              where: 'id_pertandingan = ?',
-              whereArgs: [j1.id],
-            );
-            if (j2 != null) {
-              await database.update(
-                'pertandingan',
-                {'id_peserta_1': loserId},
-                where: 'id_pertandingan = ?',
-                whereArgs: [j2.id],
-              );
-            }
-          }
-        }
-      }
-    }
-
-    final otherRounds = matches.where(
-      (m) =>
-          roundName(m.babak) != 'Semifinal' &&
-          roundName(m.babak) != 'Perebutan Juara 3' &&
-          roundName(m.babak) != 'Final',
-    );
-
-    final otherTies = <String, List<Pertandingan>>{};
-    if (isTwoLeg) {
-      for (final m in otherRounds) {
-        if (m.leg == 1) {
-          final l2 = matches.firstWhereOrNull((other) => other.id == m.nextId);
-          final key = l2?.nextId ?? m.id;
-          otherTies.putIfAbsent(key, () => []).add(m);
-          if (l2 != null) otherTies[key]!.add(l2);
-        }
-      }
-    } else {
-      for (final m in otherRounds) {
-        otherTies[m.id] = [m];
-      }
-    }
-
-    for (final entry in otherTies.entries) {
-      final legs = entry.value;
-      if (legs.every((leg) => leg.status == 'Selesai')) {
-        final firstLeg = legs.first;
-        final homeId = firstLeg.idPeserta1;
-        final awayId = firstLeg.idPeserta2;
-
-        if (homeId == null || awayId == null) continue;
-
-        var homeScore = 0;
-        var awayScore = 0;
-        for (final leg in legs) {
-          if (leg.idPeserta1 == homeId) {
-            homeScore += leg.skor1;
-            awayScore += leg.skor2;
-          } else if (leg.idPeserta1 == awayId) {
-            awayScore += leg.skor1;
-            homeScore += leg.skor2;
-          }
-        }
-
-        String? winnerId;
-        if (homeScore > awayScore) {
-          winnerId = homeId;
-        } else if (awayScore > homeScore) {
-          winnerId = awayId;
-        } else {
-          final penaltyLeg = legs
-              .where((leg) => leg.penalti1 != null && leg.penalti2 != null)
-              .lastOrNull;
-          if (penaltyLeg != null) {
-            final homeIsP1 = penaltyLeg.idPeserta1 == homeId;
-            final homePenalty = homeIsP1
-                ? penaltyLeg.penalti1!
-                : penaltyLeg.penalti2!;
-            final awayPenalty = homeIsP1
-                ? penaltyLeg.penalti2!
-                : penaltyLeg.penalti1!;
-
-            if (homePenalty > awayPenalty) {
-              winnerId = homeId;
-            } else if (awayPenalty > homePenalty) {
-              winnerId = awayId;
-            }
-          }
-        }
-
-        final targetNextId = legs.last.nextId ?? firstLeg.nextId;
-        if (winnerId != null && targetNextId != null) {
-          final nextIndex = matches.indexWhere((m) => m.id == targetNextId);
-          if (nextIndex != -1) {
-            final nextMatch = matches[nextIndex];
-            if (nextMatch.idPeserta1 == null) {
-              await database.update(
-                'pertandingan',
-                {'id_peserta_1': winnerId},
-                where: 'id_pertandingan = ?',
-                whereArgs: [nextMatch.id],
-              );
-            } else if (nextMatch.idPeserta2 == null &&
-                nextMatch.idPeserta1 != winnerId) {
-              await database.update(
-                'pertandingan',
-                {'id_peserta_2': winnerId},
-                where: 'id_pertandingan = ?',
-                whereArgs: [nextMatch.id],
-              );
-            }
-          }
-        }
-      }
+      await db.setPeserta(leg.id, useSlot1 ? 1 : 2, pesertaId);
     }
   }
 
@@ -383,8 +387,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
       final roundNames = _getRoundNames(rounds);
       final babak1Name = roundNames[0];
 
-      final currentRoundMatchIds = <String>[];
-
       for (var i = 0; i < totalBracketSize / 2; i++) {
         final p1 = (i * 2 < peserta.length) ? peserta[i * 2].id : null;
         final p2 = (i * 2 + 1 < peserta.length) ? peserta[i * 2 + 1].id : null;
@@ -392,7 +394,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
         if (isTwoLeg) {
           final m1Id = 'm_${t.id}_${matchCounter++}';
           final m2Id = 'm_${t.id}_${matchCounter++}';
-          currentRoundMatchIds.add(m1Id);
 
           matches.add(
             Pertandingan(
@@ -419,7 +420,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
           );
         } else {
           final mId = 'm_${t.id}_${matchCounter++}';
-          currentRoundMatchIds.add(mId);
           matches.add(
             Pertandingan(
               id: mId,
@@ -434,16 +434,12 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
         }
       }
 
-      var prevRoundMatchIds = List<String>.from(currentRoundMatchIds);
-
       for (var r = 1; r < rounds; r++) {
         final rName = roundNames[r];
-        final nextRoundMatchIds = <String>[];
         final numMatchesInRound = totalBracketSize >> (r + 1);
 
         for (var i = 0; i < numMatchesInRound; i++) {
           final mId = 'm_${t.id}_${matchCounter++}';
-          nextRoundMatchIds.add(mId);
 
           if (isTwoLeg) {
             final m1Id = mId;
@@ -468,13 +464,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
                 urutan: matches.length + 1,
               ),
             );
-
-            if (i * 2 < prevRoundMatchIds.length) {
-              _setNextId(matches, prevRoundMatchIds[i * 2], m1Id);
-            }
-            if (i * 2 + 1 < prevRoundMatchIds.length) {
-              _setNextId(matches, prevRoundMatchIds[i * 2 + 1], m1Id);
-            }
           } else {
             matches.add(
               Pertandingan(
@@ -485,16 +474,8 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
                 urutan: matches.length + 1,
               ),
             );
-
-            if (i * 2 < prevRoundMatchIds.length) {
-              _setNextId(matches, prevRoundMatchIds[i * 2], mId);
-            }
-            if (i * 2 + 1 < prevRoundMatchIds.length) {
-              _setNextId(matches, prevRoundMatchIds[i * 2 + 1], mId);
-            }
           }
         }
-        prevRoundMatchIds = nextRoundMatchIds;
       }
 
       if (peserta.length >= 4) {
@@ -591,29 +572,6 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     return matches;
   }
 
-  void _setNextId(List<Pertandingan> matches, String matchId, String nextId) {
-    for (var i = 0; i < matches.length; i++) {
-      if (matches[i].id == matchId) {
-        matches[i] = Pertandingan(
-          id: matches[i].id,
-          idTurnamen: matches[i].idTurnamen,
-          idPeserta1: matches[i].idPeserta1,
-          idPeserta2: matches[i].idPeserta2,
-          babak: matches[i].babak,
-          leg: matches[i].leg,
-          skor1: matches[i].skor1,
-          skor2: matches[i].skor2,
-          penalti1: matches[i].penalti1,
-          penalti2: matches[i].penalti2,
-          status: matches[i].status,
-          urutan: matches[i].urutan,
-          nextId: nextId,
-        );
-        break;
-      }
-    }
-  }
-
   List<String> _getRoundNames(int totalRounds) {
     if (totalRounds == 1) return ['Final'];
     if (totalRounds == 2) return ['Semifinal', 'Final'];
@@ -662,6 +620,12 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
       }
     }
 
+    final woIds = {
+      for (final p in _pesertaList)
+        if (p.isWo) p.id,
+    };
+    stats.removeWhere((id, _) => woIds.contains(id));
+
     return stats.values.toList()..sort((a, b) {
       if (b.poin != a.poin) return b.poin.compareTo(a.poin);
       if (b.sg != a.sg) return b.sg.compareTo(a.sg);
@@ -691,7 +655,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
   Future<void> _deleteTurnamen() async {
     final confirmed = await _showConfirmDialog(
       icon: Icons.warning_amber_rounded,
-      color: _errorColor,
+      color: AppColors.error,
       title: 'Hapus Turnamen',
       message:
           'Apakah kamu yakin ingin menghapus turnamen "${_turnamen.name}"? '
@@ -703,17 +667,17 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     try {
       await DatabaseHelper.instance.deleteTournament(_turnamen.id!);
       if (!mounted) return;
-      _showSnack('Turnamen berhasil dihapus', color: _successColor);
+      _showSnack('Turnamen berhasil dihapus', color: AppColors.success);
       Get.back(result: true);
     } catch (e) {
-      if (mounted) _showSnack('Gagal menghapus: $e', color: _errorColor);
+      if (mounted) _showSnack('Gagal menghapus: $e', color: AppColors.error);
     }
   }
 
   Future<void> _akhiriTurnamen() async {
     final confirmed = await _showConfirmDialog(
       icon: Icons.lock_rounded,
-      color: _warningColor,
+      color: AppColors.warning,
       title: 'Akhiri Turnamen?',
       message: 'Setelah turnamen diakhiri, semua skor akan dikunci.\n\nApakah kamu yakin?',
       confirmLabel: 'Ya, Akhiri Turnamen',
@@ -727,11 +691,11 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
       if (!mounted) return;
       _showSnack(
         'Turnamen telah diakhiri! Skor dikunci.',
-        color: _successColor,
+        color: AppColors.success,
       );
       _loadTournamentData();
     } catch (e) {
-      if (mounted) _showSnack('Gagal mengakhiri: $e', color: _errorColor);
+      if (mounted) _showSnack('Gagal mengakhiri: $e', color: AppColors.error);
     }
   }
 
@@ -746,14 +710,24 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     if (_turnamen.isFinished) {
       _showSnack(
         'Turnamen telah diakhiri. Skor tidak dapat diedit lagi.',
-        color: _errorColor,
+        color: AppColors.error,
+      );
+      return;
+    }
+    final isWoMatch = _pesertaList.any(
+      (p) => p.isWo && (p.id == match.idPeserta1 || p.id == match.idPeserta2),
+    );
+    if (isWoMatch) {
+      _showSnack(
+        'Laga ini sudah WO, skor tidak bisa diubah.',
+        color: AppColors.warning,
       );
       return;
     }
     if (match.idPeserta1 == null || match.idPeserta2 == null) {
       _showSnack(
         'Peserta pertandingan ini belum ditentukan (menunggu babak sebelumnya).',
-        color: _warningColor,
+        color: AppColors.warning,
       );
       return;
     }
@@ -812,7 +786,7 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: color ?? const Color(0xFF6366F1),
+        backgroundColor: color ?? AppColors.primary,
       ),
     );
   }
@@ -854,16 +828,16 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: _bgDark,
+        backgroundColor: AppColors.background,
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
 
     if (_errorMessage != null) {
       return Scaffold(
-        backgroundColor: _bgDark,
+        backgroundColor: AppColors.background,
         appBar: AppBar(title: const Text('Detail Turnamen')),
         body: Center(
           child: Column(
@@ -871,13 +845,13 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
             children: [
               const Icon(
                 Icons.error_outline_rounded,
-                color: _errorColor,
+                color: AppColors.error,
                 size: 48,
               ),
               const SizedBox(height: 12),
               Text(
                 _errorMessage!,
-                style: const TextStyle(color: _textSecondary),
+                style: const TextStyle(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -901,10 +875,10 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     final totalCount = _pertandinganList.length;
 
     return Scaffold(
-      backgroundColor: _bgDark,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: _bgDark,
-        foregroundColor: _textPrimary,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
         title: Text(
           tournament.name,
           maxLines: 1,
@@ -912,12 +886,15 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_rounded, color: _textPrimary),
+            icon: const Icon(Icons.edit_rounded, color: AppColors.textPrimary),
             tooltip: 'Edit Turnamen',
             onPressed: _openEditScreen,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: _errorColor),
+            icon: const Icon(
+              Icons.delete_outline_rounded,
+              color: AppColors.error,
+            ),
             tooltip: 'Hapus Turnamen',
             onPressed: _deleteTurnamen,
           ),
@@ -985,11 +962,14 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
   }
 
   Widget _pesertaView(double side) {
-    if (_pesertaList.isEmpty) {
+    final aktif = _pesertaList.where((p) => !p.isWo).toList();
+    final canEdit = !_turnamen.isFinished;
+
+    if (aktif.isEmpty) {
       return const Center(
         child: Text(
           'Belum ada peserta terdaftar',
-          style: TextStyle(color: _textSecondary),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
       );
     }
@@ -997,8 +977,30 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
     return ListView(
       padding: EdgeInsets.fromLTRB(side, 0, side, 20),
       children: [
-        for (var i = 0; i < _pesertaList.length; i++)
-          _PesertaTile(number: i + 1, nama: _pesertaList[i].nama),
+        if (_canAddPeserta)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: OutlinedButton.icon(
+              onPressed: _tambahPeserta,
+              icon: const Icon(Icons.person_add_alt_1_rounded),
+              label: const Text('Tambah Peserta'),
+            ),
+          )
+        else if (!_turnamen.isFinished)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: Text(
+              'Peserta tidak bisa ditambah karena sudah ada laga yang dimainkan.',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
+          ),
+        for (var i = 0; i < aktif.length; i++)
+          _PesertaTile(
+            number: i + 1,
+            nama: aktif[i].nama,
+            onEdit: canEdit ? () => _editPeserta(aktif[i]) : null,
+            onDelete: canEdit ? () => _hapusPeserta(aktif[i]) : null,
+          ),
       ],
     );
   }
@@ -1007,20 +1009,23 @@ class _DetailTournamentScreenState extends State<DetailTournamentScreen>
 class _PesertaTile extends StatelessWidget {
   final int number;
   final String nama;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const _PesertaTile({required this.number, required this.nama});
+  const _PesertaTile({
+    required this.number,
+    required this.nama,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
-    const primaryGradient = LinearGradient(
-      colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-    );
-
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: _bgCard,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
@@ -1031,7 +1036,7 @@ class _PesertaTile extends StatelessWidget {
             height: 32,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: primaryGradient,
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -1050,13 +1055,40 @@ class _PesertaTile extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
-                color: _textPrimary,
+                color: AppColors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
           ),
-          const Icon(Icons.shield_outlined, size: 18, color: _textMuted),
+          if (onEdit == null)
+            const Icon(
+              Icons.shield_outlined,
+              size: 18,
+              color: AppColors.textMuted,
+            )
+          else ...[
+            IconButton(
+              onPressed: onEdit,
+              tooltip: 'Edit nama',
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(
+                Icons.edit_rounded,
+                size: 20,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            IconButton(
+              onPressed: onDelete,
+              tooltip: 'Hapus peserta',
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                size: 20,
+                color: AppColors.error,
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rivnet/theme/app_colors.dart';
 import 'package:get/get.dart';
 import 'package:rivnet/database/database_helper.dart';
 import 'package:rivnet/models/tournament.dart';
@@ -6,13 +7,6 @@ import 'package:rivnet/widgets/page_layout.dart';
 import 'package:rivnet/widgets/section_card.dart';
 
 const _statusOptions = ['Akan Datang', 'Berlangsung', 'Selesai'];
-
-const _bgDark = Color(0xFF0F172A);
-const _textPrimary = Colors.white;
-const _textSecondary = Color(0xFF94A3B8);
-const _successColor = Color(0xFF22C55E);
-const _warningColor = Color(0xFFF59E0B);
-const _errorColor = Color(0xFFEF4444);
 
 class EditTournamentScreen extends StatefulWidget {
   final Tournament tournament;
@@ -64,7 +58,7 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Turnamen berhasil diperbarui!'),
-          backgroundColor: _successColor,
+          backgroundColor: AppColors.success,
         ),
       );
       Get.back(result: true);
@@ -73,7 +67,7 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Gagal memperbarui turnamen: $e'),
-            backgroundColor: _errorColor,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -88,9 +82,9 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
 
   Color _statusColor(String status) {
     return switch (status) {
-      'Selesai' => _successColor,
-      'Berlangsung' => _warningColor,
-      _ => const Color(0xFF38BDF8),
+      'Selesai' => AppColors.success,
+      'Berlangsung' => AppColors.warning,
+      _ => AppColors.secondary,
     };
   }
 
@@ -109,7 +103,6 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
             labelText: 'Nama Turnamen',
             hintText: 'Masukkan nama turnamen',
             prefixIcon: Icon(Icons.emoji_events_rounded),
-            border: OutlineInputBorder(),
           ),
           validator: (val) => val == null || val.trim().isEmpty
               ? 'Nama turnamen wajib diisi'
@@ -123,7 +116,6 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
             labelText: 'Deskripsi (Opsional)',
             hintText: 'Tuliskan catatan atau aturan turnamen...',
             prefixIcon: Icon(Icons.notes_rounded),
-            border: OutlineInputBorder(),
           ),
         ),
       ],
@@ -149,7 +141,7 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
           children: [
             const Text(
               'Ubah Status Turnamen:',
-              style: TextStyle(color: _textSecondary, fontSize: 13),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 10),
             Wrap(
@@ -164,7 +156,7 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
                     labelStyle: TextStyle(
                       color: _selectedStatus == option
                           ? _statusColor(option)
-                          : _textSecondary,
+                          : AppColors.textSecondary,
                       fontWeight: FontWeight.bold,
                     ),
                     onSelected: (_) => setState(() {
@@ -179,11 +171,11 @@ class _EditTournamentScreenState extends State<EditTournamentScreen> {
     );
 
     return Scaffold(
-      backgroundColor: _bgDark,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Edit Turnamen'),
-        backgroundColor: _bgDark,
-        foregroundColor: _textPrimary,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
       ),
       body: SafeArea(
         child: Form(

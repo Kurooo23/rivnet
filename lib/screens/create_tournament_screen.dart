@@ -191,7 +191,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                             labelText: 'Nama Turnamen',
                             hintText: 'cth: Turnamen Futsal Cup 2026',
                             prefixIcon: Icon(Icons.emoji_events_rounded),
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) => v == null || v.trim().isEmpty
                               ? 'Nama turnamen wajib diisi'
@@ -205,7 +204,6 @@ class _CreateTournamentScreenState extends State<CreateTournamentScreen> {
                             labelText: 'Deskripsi (Opsional)',
                             hintText: 'Catatan atau aturan turnamen...',
                             prefixIcon: Icon(Icons.notes_rounded),
-                            border: OutlineInputBorder(),
                           ),
                         ),
                       ],

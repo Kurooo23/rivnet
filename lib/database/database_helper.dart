@@ -8,7 +8,7 @@ class DatabaseHelper {
   static Database? _db;
 
   static const _dbName = 'rivnet_uts.db';
-  static const _dbVersion = 1;
+  static const _dbVersion = 2;
 
   DatabaseHelper._internal();
 
@@ -24,6 +24,7 @@ class DatabaseHelper {
       path,
       version: _dbVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -52,6 +53,7 @@ class DatabaseHelper {
         id_turnamen  TEXT NOT NULL,
         urutan       INTEGER NOT NULL DEFAULT 0,
         nama_peserta TEXT NOT NULL,
+        is_wo        INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY (id_turnamen) REFERENCES turnamen(id_turnamen) ON DELETE CASCADE
       )
     ''');
@@ -76,6 +78,15 @@ class DatabaseHelper {
         FOREIGN KEY (id_peserta_2) REFERENCES peserta(id_peserta) ON DELETE SET NULL
       )
     ''');
+  }
+
+  // versi 2: tambah kolom is_wo untuk peserta yang dihapus (walkover)
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE peserta ADD COLUMN is_wo INTEGER NOT NULL DEFAULT 0',
+      );
+    }
   }
 
   String _newId(String prefix) =>
@@ -178,6 +189,58 @@ class DatabaseHelper {
     );
   }
 
+  // Menambah satu peserta, kuota ikut naik, dan jadwal lama dihapus
+  // supaya dibuat ulang dengan jumlah peserta yang baru.
+  Future<void> addPeserta(String idTurnamen, String nama) async {
+    final db = await database;
+
+    await db.transaction((txn) async {
+      final result = await txn.rawQuery(
+        'SELECT MAX(urutan) AS terakhir FROM peserta WHERE id_turnamen = ?',
+        [idTurnamen],
+      );
+      final urutan = ((result.first['terakhir'] as int?) ?? -1) + 1;
+
+      await txn.insert('peserta', {
+        'id_peserta': '${idTurnamen}_p$urutan',
+        'id_turnamen': idTurnamen,
+        'urutan': urutan,
+        'nama_peserta': nama,
+      });
+      await txn.rawUpdate(
+        'UPDATE turnamen SET kuota = kuota + 1 WHERE id_turnamen = ?',
+        [idTurnamen],
+      );
+      await txn.delete(
+        'pertandingan',
+        where: 'id_turnamen = ?',
+        whereArgs: [idTurnamen],
+      );
+    });
+  }
+
+  Future<void> renamePeserta(String idPeserta, String nama) async {
+    final db = await database;
+    await db.update(
+      'peserta',
+      {'nama_peserta': nama},
+      where: 'id_peserta = ?',
+      whereArgs: [idPeserta],
+    );
+  }
+
+  // peserta tidak benar-benar dihapus, hanya ditandai WO
+  // supaya nama lawan di riwayat laga tetap ada
+  Future<void> setPesertaWo(String idPeserta) async {
+    final db = await database;
+    await db.update(
+      'peserta',
+      {'is_wo': 1},
+      where: 'id_peserta = ?',
+      whereArgs: [idPeserta],
+    );
+  }
+
   Future<List<Pertandingan>> getMatches(String idTurnamen) async {
     final db = await database;
     final rows = await db.query(
@@ -215,6 +278,21 @@ class DatabaseHelper {
         'skor_penalti_peserta_2': penalti2,
         'status': 'Selesai',
       },
+      where: 'id_pertandingan = ?',
+      whereArgs: [idPertandingan],
+    );
+  }
+
+  // slot 1 = id_peserta_1, slot 2 = id_peserta_2
+  Future<void> setPeserta(
+    String idPertandingan,
+    int slot,
+    String idPeserta,
+  ) async {
+    final db = await database;
+    await db.update(
+      'pertandingan',
+      {'id_peserta_$slot': idPeserta},
       where: 'id_pertandingan = ?',
       whereArgs: [idPertandingan],
     );

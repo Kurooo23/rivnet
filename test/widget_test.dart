@@ -8,7 +8,7 @@ void main() {
   ) async {
     await tester.pumpWidget(const MyApp());
 
-    expect(find.text('RivNet Offline'), findsOneWidget);
+    expect(find.text('RivNet'), findsOneWidget);
 
     await tester.tap(find.text('Buat Turnamen').first);
     await tester.pumpAndSettle();

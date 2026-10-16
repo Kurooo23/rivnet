@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:rivnet/routes/app_pages.dart';
 import 'package:rivnet/routes/app_routes.dart';
+import 'package:rivnet/theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,17 +15,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'RivNet Offline',
+      title: 'RivNet',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFF6658E8),
-          secondary: Color(0xFF39D0B1),
-          surface: Color(0xFF1A1B2E),
-        ),
-        scaffoldBackgroundColor: const Color(0xFF10111D),
-      ),
+      theme: AppTheme.dark,
       initialRoute: AppRoutes.home,
       getPages: AppPages.pages,
     );

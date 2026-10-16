@@ -78,7 +78,7 @@ class _MainShellState extends State<MainShell> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_selectedTab == 0 ? 'RivNet Offline' : 'Riwayat Turnamen'),
+        title: Text(_selectedTab == 0 ? 'RivNet' : 'Riwayat Turnamen'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

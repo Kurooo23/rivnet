@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rivnet/theme/app_colors.dart';
 import 'package:rivnet/models/tournament.dart';
 
 class DetailHeaderCard extends StatelessWidget {
@@ -29,18 +30,12 @@ class DetailHeaderCard extends StatelessWidget {
         ? '2 Leg Home & Away'
         : '1 Leg';
 
-    const successColor = Color(0xFF22C55E);
-    const warningColor = Color(0xFFF59E0B);
-    const bgCard = Color(0xFF1E293B);
-    const textSecondary = Color(0xFF94A3B8);
-    const textMuted = Color(0xFF64748B);
-
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all((screenWidth * 0.04).clamp(12.0, 20.0)),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [bgCard, Color(0xFF0F172A)],
+          colors: [AppColors.card, AppColors.background],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -65,11 +60,16 @@ class DetailHeaderCard extends StatelessWidget {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: (tournament.isFinished ? successColor : warningColor)
-                      .withValues(alpha: 0.2),
+                  color:
+                      (tournament.isFinished
+                              ? AppColors.success
+                              : AppColors.warning)
+                          .withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: tournament.isFinished ? successColor : warningColor,
+                    color: tournament.isFinished
+                        ? AppColors.success
+                        : AppColors.warning,
                   ),
                 ),
                 child: Row(
@@ -78,16 +78,16 @@ class DetailHeaderCard extends StatelessWidget {
                     CircleAvatar(
                       radius: 3,
                       backgroundColor: tournament.isFinished
-                          ? successColor
-                          : warningColor,
+                          ? AppColors.success
+                          : AppColors.warning,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       tournament.status,
                       style: TextStyle(
                         color: tournament.isFinished
-                            ? successColor
-                            : warningColor,
+                            ? AppColors.success
+                            : AppColors.warning,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
                       ),
@@ -105,13 +105,13 @@ class DetailHeaderCard extends StatelessWidget {
               _TagChip(
                 text: tournament.game,
                 background: Colors.white.withValues(alpha: 0.08),
-                color: textSecondary,
+                color: AppColors.textSecondary,
               ),
               _TagChip(
                 text:
                     '${tournament.kuota} Peserta · ${tournament.format} ($legDescription)',
-                background: const Color(0xFF6366F1).withValues(alpha: 0.15),
-                color: const Color(0xFFA5B4FC),
+                background: AppColors.primary.withValues(alpha: 0.15),
+                color: AppColors.primaryLight,
               ),
             ],
           ),
@@ -121,13 +121,16 @@ class DetailHeaderCard extends StatelessWidget {
               const Icon(
                 Icons.schedule_rounded,
                 size: 14,
-                color: textSecondary,
+                color: AppColors.textSecondary,
               ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   formattedDate,
-                  style: const TextStyle(color: textSecondary, fontSize: 12),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -138,7 +141,7 @@ class DetailHeaderCard extends StatelessWidget {
               tournament.deskripsi!,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: textMuted, fontSize: 12),
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
             ),
           ],
           const SizedBox(height: 10),
@@ -148,7 +151,7 @@ class DetailHeaderCard extends StatelessWidget {
                 child: Text(
                   'Progress Turnamen',
                   style: TextStyle(
-                    color: textSecondary,
+                    color: AppColors.textSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                   ),
@@ -172,7 +175,7 @@ class DetailHeaderCard extends StatelessWidget {
               minHeight: 6,
               backgroundColor: Colors.white.withValues(alpha: 0.08),
               valueColor: AlwaysStoppedAnimation(
-                isComplete ? successColor : const Color(0xFF6366F1),
+                isComplete ? AppColors.success : AppColors.primary,
               ),
             ),
           ),
@@ -182,19 +185,19 @@ class DetailHeaderCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: successColor.withValues(alpha: 0.15),
+                color: AppColors.success.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: successColor),
+                border: Border.all(color: AppColors.success),
               ),
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.lock_rounded, size: 16, color: successColor),
+                  Icon(Icons.lock_rounded, size: 16, color: AppColors.success),
                   SizedBox(width: 8),
                   Text(
                     'Turnamen Telah Berakhir — Skor Dikunci',
                     style: TextStyle(
-                      color: successColor,
+                      color: AppColors.success,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -214,7 +217,7 @@ class DetailHeaderCard extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: warningColor,
+                  backgroundColor: AppColors.warning,
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   shape: RoundedRectangleBorder(
